@@ -1,20 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Contato - Portal Tech{% endblock %}
 
 {% block content %}
 
-{% load static %}
-
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contato - Portal Tech</title>
-
-    <link rel="stylesheet" href="{% static 'css/contato.css' %}">
-</head>
-
-<body>
+<link rel="stylesheet" href="{% static 'css/contato.css' %}">
 
 <section class="contato">
 
@@ -28,28 +19,18 @@
     <div class="cards-contato">
 
         <div class="card">
-            <h3> E-mail</h3>
-
-            <p>
-                suporte@portaltech.com
-            </p>
+            <h3>E-mail</h3>
+            <p>suporte@portaltech.com</p>
         </div>
 
         <div class="card">
-            <h3> Telefone</h3>
-
-            <p>
-                (81) 99999-9999
-            </p>
+            <h3>Telefone</h3>
+            <p>(81) 99999-9999</p>
         </div>
 
         <div class="card">
-            <h3> Atendimento</h3>
-
-            <p>
-                Segunda a Sexta<br>
-                08h às 18h
-            </p>
+            <h3>Atendimento</h3>
+            <p>Segunda a Sexta<br>08h às 18h</p>
         </div>
 
     </div>
@@ -57,20 +38,13 @@
     <form id="contatoForm">
 
         <input type="text" placeholder="Seu nome" required>
-
         <input type="email" placeholder="Seu e-mail" required>
 
-        <textarea
-            placeholder="Digite sua mensagem"
-            rows="6"
-            required>
-        </textarea>
+        <textarea placeholder="Digite sua mensagem" rows="6" required></textarea>
 
-        <button type="submit">
-            Enviar Mensagem
-        </button>
+        <button type="submit">Enviar Mensagem</button>
 
-        <p id="mensagemContato">
+        <p id="mensagemContato" style="display:none;">
             Mensagem enviada com sucesso!
         </p>
 
@@ -83,16 +57,10 @@
     const mensagem = document.getElementById('mensagemContato');
 
     contatoForm.addEventListener('submit', function(event) {
-
         event.preventDefault();
-
         mensagem.style.display = 'block';
-
         contatoForm.reset();
     });
 </script>
-
-</body>
-</html>
 
 {% endblock %}
