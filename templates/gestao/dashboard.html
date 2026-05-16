@@ -1,0 +1,20 @@
+<h1> dashboard da Gestão</h1>
+
+<a href="">Cadastrar aluno</a>
+<a href="">Cadastrar professor</a>
+
+<form method="post" action="{% url 'logout' %}" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" style="
+        display: inline-block;
+        padding: 10px 16px;
+        background: #dc2626;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+    ">
+        Sair
+    </button>
+</form>

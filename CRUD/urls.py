@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path, include
-
+from users import views
 from users.views import portal_redirect
-from .views import contato, suporte, politicas
+
 
 urlpatterns = [
     path(
@@ -31,7 +31,18 @@ urlpatterns = [
     path('faltas/', include('faltas.urls')),
     path('notas/', include('notas.urls')),
 
-    path('contato/', contato, name='contato'),
-    path('suporte/', suporte, name='suporte'),
-    path('politicas/', politicas, name='politicas'),
+    
+    path('contato/', views.contato, name='contato'),
+    path('suporte/', views.suporte, name='suporte'),
+    path('politicas/', views.politicas, name='politicas'),
+
+    
+    path(
+        "gestao/dashboard/",
+        views.dashboard_gestao,
+        name="dashboard_gestao"
+    ),
+
+    
+
 ]

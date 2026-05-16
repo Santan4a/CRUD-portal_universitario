@@ -9,7 +9,7 @@ def get_user_role(user):
         return ''
 
     if user.is_superuser:
-        return 'professor'
+        return 'superuser'
 
     try:
         return user.profile.role
