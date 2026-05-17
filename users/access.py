@@ -25,6 +25,10 @@ def is_professor(user):
     return get_user_role(user) == 'professor'
 
 
+def is_gestao(user):
+    return get_user_role(user) == 'gestao'
+
+
 def role_required(*roles):
     def decorator(view_func):
         @wraps(view_func)

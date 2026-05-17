@@ -1,6 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from .access import get_user_role
+
+from alunos.forms import GestaoAlunoForm
+from alunos.models import Aluno
+from disciplinas.models import Disciplina
+
+from .access import get_user_role, role_required
 
 
 @login_required
@@ -19,16 +24,36 @@ def portal_redirect(request):
     return redirect('login')
 
 
-@login_required
+@role_required('gestao')
 def dashboard_gestao(request):
-    role = get_user_role(request.user)
+    alunos = Aluno.objects.prefetch_related('disciplinas').order_by('-id')
+    total_cursos = (
+        Aluno.objects.exclude(curso='')
+        .values('curso')
+        .distinct()
+        .count()
+    )
 
-    if role != "gestao":
-        return redirect("home")
+    context = {
+        'total_alunos': alunos.count(),
+        'total_cursos': total_cursos,
+        'total_disciplinas': Disciplina.objects.count(),
+        'ultimos_alunos': alunos[:6],
+    }
 
-    return render(request, "gestao/dashboard.html")
+    return render(request, "gestao/dashboard.html", context)
 
-from django.shortcuts import render
+
+@role_required('gestao')
+def cadastrar_aluno_gestao(request):
+    form = GestaoAlunoForm(request.POST or None)
+
+    if form.is_valid():
+        form.save()
+        return redirect('dashboard_gestao')
+
+    return render(request, 'gestao/cadastro_aluno.html', {'form': form})
+
 
 def contato(request):
     return render(request, 'contato.html')

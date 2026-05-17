@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block page_title %}Cadastrar aluno | Portal Universitário{% endblock %}
+{% block eyebrow %}Gestão da faculdade{% endblock %}
+{% block title %}Cadastrar aluno{% endblock %}
+
+{% block header_actions %}
+<a class="button" href="{% url 'dashboard_gestao' %}">Voltar</a>
+{% endblock %}
+
+{% block content %}
+<div class="content-stack">
+    <form class="form-panel" method="POST">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="form-field">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <p class="help-text">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit">Salvar aluno</button>
+            <a class="button" href="{% url 'dashboard_gestao' %}">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
