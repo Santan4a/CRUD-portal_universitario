@@ -73,7 +73,7 @@ Acesse no navegador:
 http://127.0.0.1:8000/
 ```
 
-A rota inicial abre a tela de login. Depois de autenticar, o usuario e enviado para o portal em `/alunos/`.
+A rota inicial abre a tela de login. Depois de autenticar, o usuario e enviado para a area do seu perfil.
 
 ## Como executar no Linux
 
@@ -137,12 +137,14 @@ Acesse no navegador:
 http://127.0.0.1:8000/
 ```
 
-A rota inicial abre a tela de login. Depois de autenticar, o usuario e enviado para o portal em `/alunos/`.
+A rota inicial abre a tela de login. Depois de autenticar, o usuario e enviado para a area do seu perfil.
 
 ## Rotas principais
 
 - `http://127.0.0.1:8000/` - login
 - `http://127.0.0.1:8000/alunos/`
+- `http://127.0.0.1:8000/gestao/dashboard/`
+- `http://127.0.0.1:8000/gestao/alunos/novo/`
 - `http://127.0.0.1:8000/disciplinas/`
 - `http://127.0.0.1:8000/notas/`
 - `http://127.0.0.1:8000/logout/`
@@ -164,13 +166,15 @@ python manage.py createsuperuser
 
 ## Usuarios de teste
 
-O portal usa dois perfis de acesso:
+O portal usa tres perfis de acesso:
 
 - `aluno`: visualiza somente sua area academica, notas, faltas, disciplinas cursando e curso.
 - `professor`: gerencia alunos, disciplinas, notas e faltas.
+- `gestao`: acessa a tela de gestao da faculdade e cadastra novos alunos com curso.
 
 Esses usuarios sao criados automaticamente pela migration
-`users.0002_create_default_portal_users` quando o comando abaixo e executado:
+`users.0002_create_default_portal_users` e pela migration
+`users.0003_create_default_gestao_user` quando o comando abaixo e executado:
 
 ```bash
 python manage.py migrate
@@ -193,6 +197,11 @@ Senha: aluno123
 ```text
 Usuario: professor
 Senha: professor123
+```
+
+```text
+Usuario: gestao
+Senha: gestao123
 ```
 
 ## Rodar testes

@@ -1,20 +1,75 @@
-<h1> dashboard da Gestão</h1>
+{% extends "base.html" %}
 
-<a href="">Cadastrar aluno</a>
-<a href="">Cadastrar professor</a>
+{% block page_title %}Gestão | Portal Universitário{% endblock %}
+{% block eyebrow %}Gestão da faculdade{% endblock %}
+{% block title %}Gestão acadêmica{% endblock %}
 
-<form method="post" action="{% url 'logout' %}" style="display:inline;">
-    {% csrf_token %}
-    <button type="submit" style="
-        display: inline-block;
-        padding: 10px 16px;
-        background: #dc2626;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-weight: bold;
-        cursor: pointer;
-    ">
-        Sair
-    </button>
-</form>
+{% block header_actions %}
+<a class="button button-primary" href="{% url 'cadastrar_aluno_gestao' %}">Cadastrar aluno</a>
+{% endblock %}
+
+{% block content %}
+<div class="content-stack">
+    <section class="metric-strip" aria-label="Resumo da gestão">
+        <article class="metric">
+            <span>Alunos cadastrados</span>
+            <strong>{{ total_alunos }}</strong>
+        </article>
+        <article class="metric">
+            <span>Cursos ativos</span>
+            <strong>{{ total_cursos }}</strong>
+        </article>
+        <article class="metric">
+            <span>Disciplinas</span>
+            <strong>{{ total_disciplinas }}</strong>
+        </article>
+    </section>
+
+    <section class="data-panel">
+        <div class="panel-header">
+            <h2>Últimos alunos</h2>
+            <span>{{ total_alunos }} aluno(s)</span>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Aluno</th>
+                        <th>Matrícula</th>
+                        <th>Curso</th>
+                        <th>Disciplinas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for aluno in ultimos_alunos %}
+                    <tr>
+                        <td>
+                            <div class="person-cell">
+                                <span class="avatar">{{ aluno.nome|slice:":1"|upper }}</span>
+                                <span>
+                                    <span class="cell-title">{{ aluno.nome }}</span>
+                                    <span class="cell-subtitle">ID {{ aluno.id }}</span>
+                                </span>
+                            </div>
+                        </td>
+                        <td>{{ aluno.matricula }}</td>
+                        <td>{{ aluno.curso }}</td>
+                        <td>{{ aluno.disciplinas.count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <strong>Nenhum aluno cadastrado</strong>
+                                <span>Cadastre um aluno para iniciar a gestão acadêmica.</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

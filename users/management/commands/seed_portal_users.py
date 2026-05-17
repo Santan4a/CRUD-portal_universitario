@@ -11,7 +11,7 @@ from users.models import Profile
 
 
 class Command(BaseCommand):
-    help = 'Create or reset the default student and professor users.'
+    help = 'Create or reset the default portal users.'
 
     def handle(self, *args, **options):
         User = get_user_model()
@@ -33,6 +33,25 @@ class Command(BaseCommand):
         Profile.objects.update_or_create(
             user=professor,
             defaults={'role': 'professor'},
+        )
+
+        gestao, _ = User.objects.get_or_create(
+            username='gestao',
+            defaults={
+                'email': 'gestao@example.com',
+                'first_name': 'Gestao',
+            },
+        )
+        gestao.email = 'gestao@example.com'
+        gestao.first_name = 'Gestao'
+        gestao.is_staff = False
+        gestao.is_active = True
+        gestao.set_password('gestao123')
+        gestao.save()
+
+        Profile.objects.update_or_create(
+            user=gestao,
+            defaults={'role': 'gestao'},
         )
 
         aluno_user, _ = User.objects.get_or_create(
@@ -88,5 +107,6 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 'Default users ready: aluno/aluno123 and professor/professor123'
+                ' and gestao/gestao123'
             )
         )
