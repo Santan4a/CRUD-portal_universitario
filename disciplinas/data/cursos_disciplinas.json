@@ -42,5 +42,138 @@
       "codigo": "ES105",
       "nome": "Gestão de Projetos"
     }
+  ],
+  "Ciência da Computação": [
+    {
+      "codigo": "CC101",
+      "nome": "Lógica de Programação"
+    },
+    {
+      "codigo": "CC102",
+      "nome": "Arquitetura de Software"
+    },
+    {
+      "codigo": "CC103",
+      "nome": "Sistemas Operacionais"
+    },
+    {
+      "codigo": "CC104",
+      "nome": "Banco de Dados"
+    },
+    {
+      "codigo": "CC105",
+      "nome": "Segurança da Informação"
+    }
+  ],
+  "Análise e Desenvolvimento de Sistemas": [
+    {
+      "codigo": "ADS101",
+      "nome": "Desenvolvimento Web"
+    },
+    {
+      "codigo": "ADS102",
+      "nome": "APIs"
+    },
+    {
+      "codigo": "ADS103",
+      "nome": "Framewors de Desenvolvimento"
+    },
+    {
+      "codigo": "ADS104",
+      "nome": "Banco de Dados"
+    },
+    {
+      "codigo": "ADS105",
+      "nome": "Versionamento com Git"
+    }
+  ],
+  "Engenharia da Computação": [
+    {
+      "codigo": "EC101",
+      "nome": "Física"
+    },
+    {
+      "codigo": "EC102",
+      "nome": "Robótica"
+    },
+    {
+      "codigo": "EC103",
+      "nome": "Qualidade de Software"
+    },
+    {
+      "codigo": "EC104",
+      "nome": "Circuitos Digitais"
+    },
+    {
+      "codigo": "EC105",
+      "nome": "Arquitetura de Computadores"
+    }
+  ],
+  "Redes de Computadores": [
+    {
+      "codigo": "RC101",
+      "nome": "Cabeamento"
+    },
+    {
+      "codigo": "RC102",
+      "nome": "Cloud Computing"
+    },
+    {
+      "codigo": "RC103",
+      "nome": "Linux"
+    },
+    {
+      "codigo": "RC104",
+      "nome": "Circuitos Digitais"
+    },
+    {
+      "codigo": "RC105",
+      "nome": "Administração de Redes"
+    }
+  ],
+  "Jogos Digitais": [
+    {
+      "codigo": "JD101",
+      "nome": "UX para Games"
+    },
+    {
+      "codigo": "JD102",
+      "nome": "Programação para Jogos"
+    },
+    {
+      "codigo": "JD103",
+      "nome": "Game Design"
+    },
+    {
+      "codigo": "JD104",
+      "nome": "Inteligência Artificial para Jogos"
+    },
+    {
+      "codigo": "JD105",
+      "nome": "Modelagem 3D"
+    }
+  ],
+  "Ciência de Dados": [
+    {
+      "codigo": "CD101",
+      "nome": "Estatística"
+    },
+    {
+      "codigo": "CD102",
+      "nome": "Python"
+    },
+    {
+      "codigo": "CD103",
+      "nome": "Big Data"
+    },
+    {
+      "codigo": "CD104",
+      "nome": "Inteligência Artificial"
+    },
+    {
+      "codigo": "CD105",
+      "nome": "Mineração de Dados"
+    }
   ]
+
 }
