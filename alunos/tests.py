@@ -2,7 +2,10 @@ from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
+from disciplinas.catalogo import disciplinas_do_curso
+from disciplinas.models import Disciplina
 from users.models import Profile
+from .forms import GestaoAlunoForm
 from .models import Aluno
 
 
@@ -85,3 +88,37 @@ class AlunoPageRenderTests(TestCase):
         response = self.client.get(reverse('lista_alunos'))
 
         self.assertEqual(response.status_code, 403)
+
+
+class GestaoAlunoFormTests(TestCase):
+    def test_salvar_aluno_vincula_disciplinas_do_curso_json(self):
+        curso = 'Sistemas de Informação'
+        form = GestaoAlunoForm(data={
+            'nome': 'Bruno Lima',
+            'matricula': 'A200',
+            'curso': curso,
+        })
+
+        self.assertTrue(form.is_valid())
+
+        aluno = form.save()
+        codigos_esperados = {
+            disciplina['codigo']
+            for disciplina in disciplinas_do_curso(curso)
+        }
+
+        self.assertEqual(
+            set(aluno.disciplinas.values_list('codigo', flat=True)),
+            codigos_esperados,
+        )
+        self.assertEqual(
+            Disciplina.objects.filter(codigo__in=codigos_esperados).count(),
+            len(codigos_esperados),
+        )
+
+    def test_curso_do_formulario_vem_da_matriz_json(self):
+        form = GestaoAlunoForm()
+        cursos = {valor for valor, _ in form.fields['curso'].choices}
+
+        self.assertIn('Sistemas de Informação', cursos)
+

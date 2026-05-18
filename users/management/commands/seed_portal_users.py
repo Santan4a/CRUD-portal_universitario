@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
 from alunos.models import Aluno
-from disciplinas.models import Disciplina
+from disciplinas.catalogo import vincular_disciplinas_do_curso
 from faltas.models import Falta
 from notas.models import Nota
 from users.models import Profile
@@ -73,11 +73,6 @@ class Command(BaseCommand):
             defaults={'role': 'aluno'},
         )
 
-        disciplina, _ = Disciplina.objects.get_or_create(
-            codigo='MAT01',
-            defaults={'nome': 'Matemática'},
-        )
-
         aluno, _ = Aluno.objects.update_or_create(
             matricula='A001',
             defaults={
@@ -86,23 +81,25 @@ class Command(BaseCommand):
                 'curso': 'Sistemas de Informação',
             },
         )
-        aluno.disciplinas.add(disciplina)
+        disciplinas = vincular_disciplinas_do_curso(aluno)
+        disciplina = disciplinas[0] if disciplinas else None
 
-        Nota.objects.update_or_create(
-            aluno=aluno,
-            disciplina=disciplina,
-            defaults={
-                'nota1': 8,
-                'nota2': 7,
-            },
-        )
+        if disciplina:
+            Nota.objects.update_or_create(
+                aluno=aluno,
+                disciplina=disciplina,
+                defaults={
+                    'nota1': 8,
+                    'nota2': 7,
+                },
+            )
 
-        Falta.objects.get_or_create(
-            aluno=aluno,
-            disciplina=disciplina,
-            data=date(2026, 5, 13),
-            defaults={'justificada': False},
-        )
+            Falta.objects.get_or_create(
+                aluno=aluno,
+                disciplina=disciplina,
+                data=date(2026, 5, 13),
+                defaults={'justificada': False},
+            )
 
         self.stdout.write(
             self.style.SUCCESS(

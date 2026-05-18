@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 
 from alunos.forms import GestaoAlunoForm
 from alunos.models import Aluno
+from disciplinas.catalogo import disciplinas_por_curso_json
 from disciplinas.models import Disciplina
 
 from .access import get_user_role, role_required
@@ -52,7 +53,14 @@ def cadastrar_aluno_gestao(request):
         form.save()
         return redirect('dashboard_gestao')
 
-    return render(request, 'gestao/cadastro_aluno.html', {'form': form})
+    return render(
+        request,
+        'gestao/cadastro_aluno.html',
+        {
+            'form': form,
+            'disciplinas_por_curso': disciplinas_por_curso_json(),
+        }
+    )
 
 
 def contato(request):
