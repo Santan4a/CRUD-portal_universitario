@@ -1,0 +1,46 @@
+{
+  "Sistemas de Informação": [
+    {
+      "codigo": "SI101",
+      "nome": "Algoritmos e Programação"
+    },
+    {
+      "codigo": "SI102",
+      "nome": "Banco de Dados"
+    },
+    {
+      "codigo": "SI103",
+      "nome": "Engenharia de Software"
+    },
+    {
+      "codigo": "SI104",
+      "nome": "Redes de Computadores"
+    },
+    {
+      "codigo": "SI105",
+      "nome": "Matemática Discreta"
+    }
+  ],
+  "Engenharia de Software": [
+    {
+      "codigo": "ES101",
+      "nome": "Algoritmos e Estruturas de Dados"
+    },
+    {
+      "codigo": "ES102",
+      "nome": "Arquitetura de Software"
+    },
+    {
+      "codigo": "ES103",
+      "nome": "Qualidade de Software"
+    },
+    {
+      "codigo": "ES104",
+      "nome": "Banco de Dados"
+    },
+    {
+      "codigo": "ES105",
+      "nome": "Gestão de Projetos"
+    }
+  ]
+}

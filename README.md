@@ -164,6 +164,29 @@ No Windows, o comando e o mesmo se o ambiente virtual estiver ativo:
 python manage.py createsuperuser
 ```
 
+## Matriz curricular em JSON
+
+As disciplinas vinculadas automaticamente ao cadastrar um aluno pela gestao ficam em:
+
+```text
+disciplinas/data/cursos_disciplinas.json
+```
+
+Para adicionar ou alterar um curso, edite esse JSON mantendo este formato:
+
+```json
+{
+  "Sistemas de Informação": [
+    {
+      "codigo": "SI101",
+      "nome": "Algoritmos e Programação"
+    }
+  ]
+}
+```
+
+Ao selecionar o curso no cadastro de aluno, o portal cria as disciplinas que ainda nao existem e vincula todas elas ao aluno salvo.
+
 ## Usuarios de teste
 
 O portal usa tres perfis de acesso:
