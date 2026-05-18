@@ -1,3 +1,11 @@
+from dotenv import load_dotenv
+from openai import OpenAI
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+import os
+import json
+
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -7,6 +15,12 @@ from .forms import AlunoForm
 from faltas.models import Falta
 from notas.models import Nota
 from users.access import is_aluno, is_professor, role_required
+
+load_dotenv()
+
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY")
+)
 
 
 @role_required('professor')
@@ -107,3 +121,59 @@ def minha_area(request):
     }
 
     return render(request, 'alunos/minha_area.html', context)
+
+@login_required
+def pagina_tutor_ia(request):
+
+    return render(
+        request,
+        'alunos/tutor_ia.html'
+    )
+
+@csrf_exempt
+def tutor_ia(request):
+
+    if request.method == 'POST':
+
+        try:
+
+            data = json.loads(request.body)
+
+            pergunta = data.get('mensagem')
+
+            resposta = client.chat.completions.create(
+
+                model="gpt-4.1-mini",
+
+                messages=[
+
+                    {
+                        "role": "system",
+                        "content": """
+                        Você é um tutor especializado
+                        em tecnologia e programação.
+                        """
+                    },
+
+                    {
+                        "role": "user",
+                        "content": pergunta
+                    }
+                ]
+            )
+
+            texto = resposta.choices[0].message.content
+
+            return JsonResponse({
+                'resposta': texto
+            })
+
+        except Exception as e:
+
+                return JsonResponse({
+                    'resposta': '''
+                    Tutor IA temporariamente indisponível.
+
+                    Verifique os créditos da API OpenAI.
+                    '''
+                })

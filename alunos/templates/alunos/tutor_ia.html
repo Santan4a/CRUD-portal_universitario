@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div style="padding: 40px;">
+
+    <h1>Tutor IA</h1>
+
+    <input
+        type="text"
+        id="pergunta"
+        placeholder="Digite sua pergunta"
+        style="
+            width: 70%;
+            padding: 12px;
+        "
+    >
+
+    <button onclick="enviarPergunta()">
+        Perguntar
+    </button>
+
+    <br><br>
+
+    <div
+    id="resposta"
+    style="
+        margin-top: 25px;
+        background: white;
+        border-radius: 18px;
+        padding: 25px;
+        min-height: 250px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e5e7eb;
+        font-size: 16px;
+        line-height: 1.7;
+        color: #111827;
+        overflow-y: auto;
+    "
+>
+
+    <div style="
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e5e7eb;
+    ">
+
+        <div style="
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        ">
+            IA
+        </div>
+
+        <div>
+            <strong>Tutor IA</strong>
+            <p style="
+                margin: 0;
+                font-size: 14px;
+                color: #6b7280;
+            ">
+                Assistente acadêmico de tecnologia
+            </p>
+        </div>
+
+    </div>
+
+    <div id="texto-resposta">
+
+        Olá <br><br>
+
+        Faça uma pergunta sobre:
+        <ul>
+            <li>Python</li>
+            <li>Django</li>
+            <li>Banco de dados</li>
+            <li>JSON</li>
+            <li>Programação</li>
+        </ul>
+
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+async function enviarPergunta() {
+
+    const mensagem =
+        document.getElementById('pergunta').value;
+
+    const respostaDiv =
+    document.getElementById('texto-resposta');
+
+    respostaDiv.innerHTML =
+        "Pensando...";
+
+    const response = await fetch(
+        "{% url 'tutor_ia' %}",
+        {
+            method: 'POST',
+
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify({
+                mensagem: mensagem
+            })
+        }
+    );
+
+    const data = await response.json();
+
+    respostaDiv.innerHTML =
+        data.resposta;
+}
+
+document
+    .getElementById('pergunta')
+    .addEventListener('keypress', function(event) {
+
+        if (event.key === 'Enter') {
+            enviarPergunta();
+        }
+    });
+
+</script>
+
+{% endblock %}

@@ -33,6 +33,12 @@
                     <a href="{% url 'minha_area' %}" class="{% if '/minha-area/' in request.path %}is-active{% endif %}">Minha área</a>
                     <a href="{% url 'lista_notas' %}" class="{% if '/notas/' in request.path %}is-active{% endif %}">Notas</a>
                     <a href="{% url 'lista_faltas' %}" class="{% if '/faltas/' in request.path %}is-active{% endif %}">Faltas</a>
+                    <a
+                            href="{% url 'pagina_tutor_ia' %}"
+                            class="{% if '/tutor-ia-page/' in request.path %}is-active{% endif %}"
+                        >
+                            Tutor IA
+                        </a>
                 {% endif %}
             </nav>
         </aside>

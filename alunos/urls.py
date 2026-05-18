@@ -20,4 +20,17 @@ urlpatterns = [
     ),
 
     path('dashboard/<int:id>/', views.dashboard_aluno, name='dashboard_aluno'),
+
+    path(
+    'tutor-ia-page/',
+    views.pagina_tutor_ia,
+    name='pagina_tutor_ia'
+    ),
+
+    path(
+        'tutor-ia/',
+        views.tutor_ia,
+        name='tutor_ia'
+    ),
+
 ]
