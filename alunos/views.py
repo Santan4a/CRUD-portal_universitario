@@ -1,5 +1,3 @@
-from dotenv import load_dotenv
-from openai import OpenAI
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -16,11 +14,35 @@ from faltas.models import Falta
 from notas.models import Nota
 from users.access import is_aluno, is_professor, role_required
 
-load_dotenv()
 
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
-)
+def criar_cliente_openai():
+    try:
+        from dotenv import load_dotenv
+    except ModuleNotFoundError:
+        load_dotenv = None
+
+    try:
+        from openai import OpenAI
+    except ModuleNotFoundError as exc:
+        raise RuntimeError('A biblioteca openai não está instalada.') from exc
+
+    if load_dotenv:
+        load_dotenv()
+
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        raise RuntimeError('OPENAI_API_KEY não configurada.')
+
+    return OpenAI(api_key=api_key)
+
+
+def resposta_tutor_indisponivel():
+    return JsonResponse({
+        'resposta': (
+            'Tutor IA temporariamente indisponível. '
+            'Verifique a configuração da API OpenAI.'
+        )
+    })
 
 
 @role_required('professor')
@@ -141,6 +163,8 @@ def tutor_ia(request):
 
             pergunta = data.get('mensagem')
 
+            client = criar_cliente_openai()
+
             resposta = client.chat.completions.create(
 
                 model="gpt-4.1-mini",
@@ -168,12 +192,10 @@ def tutor_ia(request):
                 'resposta': texto
             })
 
-        except Exception as e:
+        except Exception:
 
-                return JsonResponse({
-                    'resposta': '''
-                    Tutor IA temporariamente indisponível.
+            return resposta_tutor_indisponivel()
 
-                    Verifique os créditos da API OpenAI.
-                    '''
-                })
+    return JsonResponse({
+        'resposta': 'Método não permitido.'
+    }, status=405)
