@@ -90,12 +90,29 @@ class AlunoPageRenderTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
 
+class AlunoMatriculaTests(TestCase):
+    def test_aluno_sem_matricula_recebe_proxima_sequencia(self):
+        Aluno.objects.all().delete()
+
+        primeiro = Aluno.objects.create(nome='Ana Silva')
+        segundo = Aluno.objects.create(nome='Bruno Lima')
+
+        self.assertEqual(primeiro.matricula, 'A001')
+        self.assertEqual(segundo.matricula, 'A002')
+
+    def test_matricula_automatica_continua_a_maior_existente(self):
+        Aluno.objects.create(nome='Ana Silva', matricula='A009')
+
+        aluno = Aluno.objects.create(nome='Bruno Lima')
+
+        self.assertEqual(aluno.matricula, 'A010')
+
+
 class GestaoAlunoFormTests(TestCase):
     def test_salvar_aluno_vincula_disciplinas_do_curso_json(self):
         curso = 'Bacharelado em Sistemas de Informação e Transformação Digital'
         form = GestaoAlunoForm(data={
             'nome': 'Bruno Lima',
-            'matricula': 'A200',
             'curso': curso,
         })
 
@@ -115,6 +132,7 @@ class GestaoAlunoFormTests(TestCase):
             Disciplina.objects.filter(codigo__in=codigos_esperados).count(),
             len(codigos_esperados),
         )
+        self.assertRegex(aluno.matricula, r'^A\d{3}$')
 
     def test_curso_do_formulario_vem_da_matriz_json(self):
         form = GestaoAlunoForm()

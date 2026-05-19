@@ -7,7 +7,7 @@ class AlunoForm(forms.ModelForm):
 
     class Meta:
         model = Aluno
-        fields = ['user', 'nome', 'matricula', 'curso', 'disciplinas']
+        fields = ['user', 'nome', 'curso', 'disciplinas']
 
 
 class GestaoAlunoForm(forms.ModelForm):
@@ -15,15 +15,13 @@ class GestaoAlunoForm(forms.ModelForm):
 
     class Meta:
         model = Aluno
-        fields = ['nome', 'matricula', 'curso']
+        fields = ['nome', 'curso']
         labels = {
             'nome': 'Nome do aluno',
-            'matricula': 'Matricula',
             'curso': 'Curso',
         }
         widgets = {
             'nome': forms.TextInput(attrs={'placeholder': 'Nome completo'}),
-            'matricula': forms.TextInput(attrs={'placeholder': 'Ex.: A002'}),
         }
 
     def __init__(self, *args, **kwargs):
