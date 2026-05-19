@@ -69,7 +69,7 @@ class AlunoPageRenderTests(TestCase):
             user=aluno_user,
             nome='Ana Silva',
             matricula='A103',
-            curso='Sistemas de Informação'
+            curso='Bacharelado em Sistemas de Informação e Transformação Digital'
         )
         self.client.force_login(aluno_user)
 
@@ -92,7 +92,7 @@ class AlunoPageRenderTests(TestCase):
 
 class GestaoAlunoFormTests(TestCase):
     def test_salvar_aluno_vincula_disciplinas_do_curso_json(self):
-        curso = 'Sistemas de Informação'
+        curso = 'Bacharelado em Sistemas de Informação e Transformação Digital'
         form = GestaoAlunoForm(data={
             'nome': 'Bruno Lima',
             'matricula': 'A200',
@@ -120,5 +120,5 @@ class GestaoAlunoFormTests(TestCase):
         form = GestaoAlunoForm()
         cursos = {valor for valor, _ in form.fields['curso'].choices}
 
-        self.assertIn('Sistemas de Informação', cursos)
+        self.assertIn('Bacharelado em Sistemas de Informação e Transformação Digital', cursos)
 

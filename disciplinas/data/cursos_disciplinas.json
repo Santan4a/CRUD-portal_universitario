@@ -1,179 +1,222 @@
 {
-  "Sistemas de Informação": [
+  "Bacharelado em Sistemas de Informação e Transformação Digital": [
     {
       "codigo": "SI101",
       "nome": "Algoritmos e Programação"
     },
     {
       "codigo": "SI102",
-      "nome": "Banco de Dados"
+      "nome": "Banco de Dados e Engenharia de Dados"
     },
     {
       "codigo": "SI103",
-      "nome": "Engenharia de Software"
+      "nome": "Produtos Digitais e Processos de Negócio"
     },
     {
       "codigo": "SI104",
-      "nome": "Redes de Computadores"
+      "nome": "Cloud Computing e DevOps"
     },
     {
       "codigo": "SI105",
-      "nome": "Matemática Discreta"
+      "nome": "Governança de TI, Segurança e LGPD"
     }
   ],
-  "Engenharia de Software": [
+  "Bacharelado em Engenharia de Software e Inteligência Artificial": [
     {
       "codigo": "ES101",
       "nome": "Algoritmos e Estruturas de Dados"
     },
     {
       "codigo": "ES102",
-      "nome": "Arquitetura de Software"
+      "nome": "Arquitetura de Software e Microsserviços"
     },
     {
       "codigo": "ES103",
-      "nome": "Qualidade de Software"
+      "nome": "Qualidade de Software, Testes e DevSecOps"
     },
     {
       "codigo": "ES104",
-      "nome": "Banco de Dados"
+      "nome": "APIs, Integração e Computação em Nuvem"
     },
     {
       "codigo": "ES105",
-      "nome": "Gestão de Projetos"
+      "nome": "Engenharia de IA e Gestão Ágil de Produtos"
     }
   ],
-  "Ciência da Computação": [
+  "Bacharelado em Ciência da Computação": [
     {
       "codigo": "CC101",
-      "nome": "Lógica de Programação"
+      "nome": "Algoritmos e Estruturas de Dados"
     },
     {
       "codigo": "CC102",
-      "nome": "Arquitetura de Software"
+      "nome": "Inteligência Artificial e Aprendizado de Máquina"
     },
     {
       "codigo": "CC103",
-      "nome": "Sistemas Operacionais"
+      "nome": "Sistemas Operacionais e Computação Paralela"
     },
     {
       "codigo": "CC104",
-      "nome": "Banco de Dados"
+      "nome": "Banco de Dados e Sistemas Distribuídos"
     },
     {
       "codigo": "CC105",
-      "nome": "Segurança da Informação"
+      "nome": "Segurança da Informação e Criptografia"
     }
   ],
-  "Análise e Desenvolvimento de Sistemas": [
+  "Tecnologia em Análise e Desenvolvimento de Sistemas Full Stack": [
     {
       "codigo": "ADS101",
-      "nome": "Desenvolvimento Web"
+      "nome": "Desenvolvimento Web Full Stack"
     },
     {
       "codigo": "ADS102",
-      "nome": "APIs"
+      "nome": "APIs REST, GraphQL e Microsserviços"
     },
     {
       "codigo": "ADS103",
-      "nome": "Framewors de Desenvolvimento"
+      "nome": "Frameworks de Desenvolvimento Modernos"
     },
     {
       "codigo": "ADS104",
-      "nome": "Banco de Dados"
+      "nome": "Banco de Dados SQL e NoSQL"
     },
     {
       "codigo": "ADS105",
-      "nome": "Versionamento com Git"
+      "nome": "DevOps, Git e Entrega Contínua"
     }
   ],
-  "Engenharia da Computação": [
+  "Bacharelado em Engenharia da Computação, IoT e Robótica": [
     {
       "codigo": "EC101",
-      "nome": "Física"
+      "nome": "Física Aplicada à Computação"
     },
     {
       "codigo": "EC102",
-      "nome": "Robótica"
+      "nome": "Internet das Coisas e Sistemas Embarcados"
     },
     {
       "codigo": "EC103",
-      "nome": "Qualidade de Software"
+      "nome": "Robótica e Automação Inteligente"
     },
     {
       "codigo": "EC104",
-      "nome": "Circuitos Digitais"
+      "nome": "Circuitos Digitais e FPGA"
     },
     {
       "codigo": "EC105",
-      "nome": "Arquitetura de Computadores"
+      "nome": "Arquitetura de Computadores e Computação de Borda"
     }
   ],
-  "Redes de Computadores": [
+  "Tecnologia em Redes, Cloud e Cibersegurança": [
     {
       "codigo": "RC101",
-      "nome": "Cabeamento"
+      "nome": "Infraestrutura de Redes e Cabeamento Estruturado"
     },
     {
       "codigo": "RC102",
-      "nome": "Cloud Computing"
+      "nome": "Cloud Computing e Virtualização"
     },
     {
       "codigo": "RC103",
-      "nome": "Linux"
+      "nome": "Linux, Containers e Automação"
     },
     {
       "codigo": "RC104",
-      "nome": "Circuitos Digitais"
+      "nome": "Cibersegurança e Redes Zero Trust"
     },
     {
       "codigo": "RC105",
-      "nome": "Administração de Redes"
+      "nome": "Administração de Redes e Observabilidade"
     }
   ],
-  "Jogos Digitais": [
+  "Tecnologia em Jogos Digitais e Realidade Estendida": [
     {
       "codigo": "JD101",
-      "nome": "UX para Games"
+      "nome": "UX, Acessibilidade e Pesquisa para Games"
     },
     {
       "codigo": "JD102",
-      "nome": "Programação para Jogos"
+      "nome": "Programação para Jogos com Motores Modernos"
     },
     {
       "codigo": "JD103",
-      "nome": "Game Design"
+      "nome": "Game Design, Narrativa e Balanceamento"
     },
     {
       "codigo": "JD104",
-      "nome": "Inteligência Artificial para Jogos"
+      "nome": "IA Generativa e Comportamento para Jogos"
     },
     {
       "codigo": "JD105",
-      "nome": "Modelagem 3D"
+      "nome": "Modelagem 3D, Realidade Estendida e Produção"
     }
   ],
-  "Ciência de Dados": [
+  "Bacharelado em Ciência de Dados e Inteligência Artificial": [
     {
       "codigo": "CD101",
-      "nome": "Estatística"
+      "nome": "Estatística Aplicada e Experimentação"
     },
     {
       "codigo": "CD102",
-      "nome": "Python"
+      "nome": "Python para Análise e Engenharia de Dados"
     },
     {
       "codigo": "CD103",
-      "nome": "Big Data"
+      "nome": "Big Data, Pipelines e Plataformas em Nuvem"
     },
     {
       "codigo": "CD104",
-      "nome": "Inteligência Artificial"
+      "nome": "Machine Learning e Inteligência Artificial"
     },
     {
       "codigo": "CD105",
-      "nome": "Mineração de Dados"
+      "nome": "Governança, Ética, LGPD e Visualização de Dados"
+    }
+  ],
+  "Bacharelado em Inteligência Artificial Aplicada": [
+    {
+      "codigo": "IA101",
+      "nome": "Fundamentos de Inteligência Artificial"
+    },
+    {
+      "codigo": "IA102",
+      "nome": "Machine Learning e Deep Learning"
+    },
+    {
+      "codigo": "IA103",
+      "nome": "Processamento de Linguagem Natural"
+    },
+    {
+      "codigo": "IA104",
+      "nome": "MLOps e Implantação de Modelos"
+    },
+    {
+      "codigo": "IA105",
+      "nome": "Ética, Governança e Segurança em IA"
+    }
+  ],
+  "Tecnologia em Segurança da Informação e Defesa Cibernética": [
+    {
+      "codigo": "SC101",
+      "nome": "Fundamentos de Segurança da Informação"
+    },
+    {
+      "codigo": "SC102",
+      "nome": "Pentest e Análise de Vulnerabilidades"
+    },
+    {
+      "codigo": "SC103",
+      "nome": "Segurança em Nuvem e DevSecOps"
+    },
+    {
+      "codigo": "SC104",
+      "nome": "Resposta a Incidentes e Forense Digital"
+    },
+    {
+      "codigo": "SC105",
+      "nome": "Gestão de Riscos, Compliance e LGPD"
     }
   ]
-
 }
