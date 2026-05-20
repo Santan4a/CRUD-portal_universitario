@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
-from disciplinas.catalogo import disciplinas_do_curso
+from disciplinas.catalogo import cursos_disponiveis, disciplinas_do_curso
 from disciplinas.models import Disciplina
 from users.models import Profile
 from .forms import GestaoAlunoForm
@@ -17,6 +17,10 @@ class AlunoUrlTests(SimpleTestCase):
         self.assertEqual(reverse('editar_aluno', args=[1]), '/alunos/editar/1/')
         self.assertEqual(reverse('excluir_aluno', args=[1]), '/alunos/excluir/1/')
         self.assertEqual(reverse('dashboard_aluno', args=[1]), '/alunos/dashboard/1/')
+        self.assertEqual(
+            reverse('editar_aluno_gestao', args=[1]),
+            '/gestao/alunos/1/editar/'
+        )
 
     @override_settings(SECURE_SSL_REDIRECT=False)
     def test_home_renders_login(self):
@@ -139,4 +143,51 @@ class GestaoAlunoFormTests(TestCase):
         cursos = {valor for valor, _ in form.fields['curso'].choices}
 
         self.assertIn('Bacharelado em Sistemas de Informação e Transformação Digital', cursos)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class GestaoAlunoViewTests(TestCase):
+    def setUp(self):
+        self.gestao_user = User.objects.create_user(
+            username='gestao_teste',
+            password='gestao12345'
+        )
+        Profile.objects.create(user=self.gestao_user, role='gestao')
+        self.client.force_login(self.gestao_user)
+
+    def test_dashboard_exibe_link_para_editar_aluno(self):
+        aluno = Aluno.objects.create(nome='Ana Silva')
+
+        response = self.client.get(reverse('dashboard_gestao'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            reverse('editar_aluno_gestao', args=[aluno.id])
+        )
+
+    def test_gestao_pode_alterar_curso_do_aluno(self):
+        curso_antigo, curso_novo = cursos_disponiveis()[:2]
+        aluno = Aluno.objects.create(nome='Ana Silva', curso=curso_antigo)
+
+        response = self.client.post(
+            reverse('editar_aluno_gestao', args=[aluno.id]),
+            {
+                'nome': aluno.nome,
+                'curso': curso_novo,
+            },
+        )
+
+        aluno.refresh_from_db()
+        codigos_esperados = {
+            disciplina['codigo']
+            for disciplina in disciplinas_do_curso(curso_novo)
+        }
+
+        self.assertRedirects(response, reverse('dashboard_gestao'))
+        self.assertEqual(aluno.curso, curso_novo)
+        self.assertEqual(
+            set(aluno.disciplinas.values_list('codigo', flat=True)),
+            codigos_esperados,
+        )
 

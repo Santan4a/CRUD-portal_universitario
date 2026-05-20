@@ -47,6 +47,11 @@ urlpatterns = [
         views.cadastrar_aluno_gestao,
         name="cadastrar_aluno_gestao"
     ),
+    path(
+        "gestao/alunos/<int:id>/editar/",
+        views.editar_aluno_gestao,
+        name="editar_aluno_gestao"
+    ),
 
     
 
