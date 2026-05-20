@@ -64,20 +64,33 @@
             </header>
 
             {% block content %}{% endblock %}
-            </main>
-            </div>
 
-    <footer class="footer">
-        <div class="footer-content">
-            <p>© 2026 Portal Universitário</p>
+            <footer class="footer">
+                <div class="footer-content">
+                    <a class="footer-brand" href="{% url 'portal' %}">
+                        <span class="footer-mark">
+                            <img src="{% static 'assets/brand/logo.png' %}" alt="">
+                        </span>
+                        <span>
+                            <strong>Portal Tech</strong>
+                            <small>Portal Universitário</small>
+                        </span>
+                    </a>
 
-            <div class="footer-links">
-                <a href="{% url 'suporte' %}">Suporte</a>
-                <a href="{% url 'contato' %}">Contato</a>
-                <a href="{% url 'politicas' %}">Políticas</a>
-            </div>
-        </div>
-    </footer>
+                    <nav class="footer-links" aria-label="Links de apoio">
+                        <a href="{% url 'suporte' %}">Suporte</a>
+                        <a href="{% url 'contato' %}">Contato</a>
+                        <a href="{% url 'politicas' %}">Políticas</a>
+                    </nav>
+                </div>
+
+                <div class="footer-bottom">
+                    <span>© 2026 Portal Universitário</span>
+                    <span>Faculdade Tech</span>
+                </div>
+            </footer>
+        </main>
+    </div>
 
 </body>
 </html>
