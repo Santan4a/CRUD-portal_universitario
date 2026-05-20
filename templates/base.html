@@ -64,33 +64,29 @@
             </header>
 
             {% block content %}{% endblock %}
-
-            <footer class="footer">
-                <div class="footer-content">
-                    <a class="footer-brand" href="{% url 'portal' %}">
-                        <span class="footer-mark">
-                            <img src="{% static 'assets/brand/logo.png' %}" alt="">
-                        </span>
-                        <span>
-                            <strong>Portal Tech</strong>
-                            <small>Portal Universitário</small>
-                        </span>
-                    </a>
-
-                    <nav class="footer-links" aria-label="Links de apoio">
-                        <a href="{% url 'suporte' %}">Suporte</a>
-                        <a href="{% url 'contato' %}">Contato</a>
-                        <a href="{% url 'politicas' %}">Políticas</a>
-                    </nav>
-                </div>
-
-                <div class="footer-bottom">
-                    <span>© 2026 Portal Universitário</span>
-                    <span>Faculdade Tech</span>
-                </div>
-            </footer>
         </main>
     </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <nav class="footer-column footer-links" aria-label="Links úteis">
+                <h2>Links úteis</h2>
+                <a href="{% url 'suporte' %}">Suporte acadêmico</a>
+                <a href="{% url 'contato' %}">Contato</a>
+                <a href="{% url 'politicas' %}">Políticas do portal</a>
+            </nav>
+
+            <section class="footer-column" aria-labelledby="footer-coordination-title">
+                <h2 id="footer-coordination-title">Coordenação do curso</h2>
+                <p>Coordenação Acadêmica</p>
+                <span>Atendimento e orientações do Portal Universitário.</span>
+            </section>
+
+            <a class="footer-logo" href="{% url 'portal' %}" aria-label="Portal Tech">
+                <img src="{% static 'assets/brand/footer-logo.png' %}" alt="Portal Tech">
+            </a>
+        </div>
+    </footer>
 
 </body>
 </html>
