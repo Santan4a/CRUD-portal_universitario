@@ -1,9 +1,13 @@
+from datetime import date
+
 from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from disciplinas.catalogo import cursos_disponiveis, disciplinas_do_curso
 from disciplinas.models import Disciplina
+from faltas.models import Falta
+from notas.models import Nota
 from users.models import Profile
 from .forms import GestaoAlunoForm
 from .models import Aluno
@@ -80,6 +84,48 @@ class AlunoPageRenderTests(TestCase):
         response = self.client.get(reverse('portal'))
 
         self.assertRedirects(response, reverse('minha_area'))
+
+    def test_minha_area_mostra_apenas_registros_do_curso_atual(self):
+        curso_atual, curso_antigo = cursos_disponiveis()[:2]
+        disciplina_atual_dados = disciplinas_do_curso(curso_atual)[0]
+        disciplina_antiga_dados = disciplinas_do_curso(curso_antigo)[0]
+        disciplina_atual = Disciplina.objects.create(**disciplina_atual_dados)
+        disciplina_antiga = Disciplina.objects.create(**disciplina_antiga_dados)
+        aluno_user = User.objects.create_user(
+            username='aluno_area_teste',
+            password='aluno12345'
+        )
+        Profile.objects.create(user=aluno_user, role='aluno')
+        aluno = Aluno.objects.create(
+            user=aluno_user,
+            nome='Ana Silva',
+            matricula='A104',
+            curso=curso_atual
+        )
+        aluno.disciplinas.add(disciplina_atual)
+        Nota.objects.create(
+            aluno=aluno,
+            disciplina=disciplina_atual,
+            nota1=9,
+            nota2=8
+        )
+        Nota.objects.create(
+            aluno=aluno,
+            disciplina=disciplina_antiga,
+            nota1=6,
+            nota2=5
+        )
+        Falta.objects.create(
+            aluno=aluno,
+            disciplina=disciplina_antiga,
+            data=date(2026, 5, 13)
+        )
+        self.client.force_login(aluno_user)
+
+        response = self.client.get(reverse('minha_area'))
+
+        self.assertContains(response, disciplina_atual.nome)
+        self.assertNotContains(response, disciplina_antiga.nome)
 
     def test_student_cannot_access_aluno_crud(self):
         aluno_user = User.objects.create_user(
@@ -168,7 +214,20 @@ class GestaoAlunoViewTests(TestCase):
 
     def test_gestao_pode_alterar_curso_do_aluno(self):
         curso_antigo, curso_novo = cursos_disponiveis()[:2]
+        disciplina_antiga_dados = disciplinas_do_curso(curso_antigo)[0]
+        disciplina_antiga = Disciplina.objects.create(**disciplina_antiga_dados)
         aluno = Aluno.objects.create(nome='Ana Silva', curso=curso_antigo)
+        Nota.objects.create(
+            aluno=aluno,
+            disciplina=disciplina_antiga,
+            nota1=8,
+            nota2=7
+        )
+        Falta.objects.create(
+            aluno=aluno,
+            disciplina=disciplina_antiga,
+            data=date(2026, 5, 13)
+        )
 
         response = self.client.post(
             reverse('editar_aluno_gestao', args=[aluno.id]),
@@ -190,4 +249,12 @@ class GestaoAlunoViewTests(TestCase):
             set(aluno.disciplinas.values_list('codigo', flat=True)),
             codigos_esperados,
         )
+        self.assertFalse(Nota.objects.filter(
+            aluno=aluno,
+            disciplina=disciplina_antiga
+        ).exists())
+        self.assertFalse(Falta.objects.filter(
+            aluno=aluno,
+            disciplina=disciplina_antiga
+        ).exists())
 

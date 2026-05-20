@@ -88,6 +88,11 @@ def dashboard_aluno(request, id):
     
     notas = Nota.objects.filter(aluno=aluno)
     faltas = Falta.objects.filter(aluno=aluno)
+    disciplina_ids = list(aluno.disciplinas.values_list('id', flat=True))
+
+    if disciplina_ids:
+        notas = notas.filter(disciplina_id__in=disciplina_ids)
+        faltas = faltas.filter(disciplina_id__in=disciplina_ids)
     
     if notas.exists():
         soma_medias = sum([nota.media() for nota in notas])
@@ -125,7 +130,11 @@ def minha_area(request):
         faltas = Falta.objects.filter(aluno=aluno).select_related('disciplina')
         disciplinas = list(aluno.disciplinas.all())
 
-        if not disciplinas:
+        if disciplinas:
+            disciplina_ids = [disciplina.id for disciplina in disciplinas]
+            notas = notas.filter(disciplina_id__in=disciplina_ids)
+            faltas = faltas.filter(disciplina_id__in=disciplina_ids)
+        else:
             disciplinas = [nota.disciplina for nota in notas]
 
         if notas.exists():

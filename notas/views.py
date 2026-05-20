@@ -12,7 +12,14 @@ from users.access import is_aluno, is_professor, role_required
 def lista_notas(request):
     if is_aluno(request.user):
         aluno = getattr(request.user, 'aluno', None)
-        notas = Nota.objects.filter(aluno=aluno) if aluno else Nota.objects.none()
+        notas = Nota.objects.none()
+
+        if aluno:
+            notas = Nota.objects.filter(aluno=aluno)
+            disciplina_ids = list(aluno.disciplinas.values_list('id', flat=True))
+
+            if disciplina_ids:
+                notas = notas.filter(disciplina_id__in=disciplina_ids)
     elif is_professor(request.user):
         notas = Nota.objects.all()
     else:

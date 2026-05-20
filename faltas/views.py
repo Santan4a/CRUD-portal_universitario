@@ -11,7 +11,14 @@ from users.access import is_aluno, is_professor, role_required
 def lista_faltas(request):
     if is_aluno(request.user):
         aluno = getattr(request.user, 'aluno', None)
-        faltas = Falta.objects.filter(aluno=aluno) if aluno else Falta.objects.none()
+        faltas = Falta.objects.none()
+
+        if aluno:
+            faltas = Falta.objects.filter(aluno=aluno)
+            disciplina_ids = list(aluno.disciplinas.values_list('id', flat=True))
+
+            if disciplina_ids:
+                faltas = faltas.filter(disciplina_id__in=disciplina_ids)
     elif is_professor(request.user):
         faltas = Falta.objects.all()
     else:

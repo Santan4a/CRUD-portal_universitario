@@ -34,6 +34,19 @@ class GestaoAlunoForm(forms.ModelForm):
 
         if commit:
             aluno.save()
-            vincular_disciplinas_do_curso(aluno)
+            disciplinas = vincular_disciplinas_do_curso(aluno)
+            self.remover_registros_fora_do_curso(aluno, disciplinas)
 
         return aluno
+
+    def remover_registros_fora_do_curso(self, aluno, disciplinas):
+        from faltas.models import Falta
+        from notas.models import Nota
+
+        disciplina_ids = [disciplina.id for disciplina in disciplinas]
+        Nota.objects.filter(aluno=aluno).exclude(
+            disciplina_id__in=disciplina_ids
+        ).delete()
+        Falta.objects.filter(aluno=aluno).exclude(
+            disciplina_id__in=disciplina_ids
+        ).delete()
