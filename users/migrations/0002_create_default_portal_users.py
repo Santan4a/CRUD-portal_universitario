@@ -62,7 +62,7 @@ def create_default_portal_users(apps, schema_editor):
         defaults={
             'user': aluno_user,
             'nome': 'Aluno Demo',
-            'curso': 'Sistemas de Informação',
+            'curso': 'Bacharelado em Sistemas de Informação e Transformação Digital',
         },
     )
     aluno.disciplinas.add(disciplina)

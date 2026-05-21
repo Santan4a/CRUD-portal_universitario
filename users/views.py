@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 
 from alunos.forms import GestaoAlunoForm
 from alunos.models import Aluno
@@ -39,7 +39,7 @@ def dashboard_gestao(request):
         'total_alunos': alunos.count(),
         'total_cursos': total_cursos,
         'total_disciplinas': Disciplina.objects.count(),
-        'ultimos_alunos': alunos[:6],
+        'alunos': alunos,
     }
 
     return render(request, "gestao/dashboard.html", context)
@@ -57,6 +57,26 @@ def cadastrar_aluno_gestao(request):
         request,
         'gestao/cadastro_aluno.html',
         {
+            'form': form,
+            'disciplinas_por_curso': disciplinas_por_curso_json(),
+        }
+    )
+
+
+@role_required('gestao')
+def editar_aluno_gestao(request, id):
+    aluno = get_object_or_404(Aluno, id=id)
+    form = GestaoAlunoForm(request.POST or None, instance=aluno)
+
+    if form.is_valid():
+        form.save()
+        return redirect('dashboard_gestao')
+
+    return render(
+        request,
+        'gestao/cadastro_aluno.html',
+        {
+            'aluno': aluno,
             'form': form,
             'disciplinas_por_curso': disciplinas_por_curso_json(),
         }

@@ -49,7 +49,7 @@ class NotaAccessTests(TestCase):
             user=aluno_user,
             nome='Ana Silva',
             matricula='N102',
-            curso='Sistemas de Informação'
+            curso='Bacharelado em Sistemas de Informação e Transformação Digital'
         )
         outro_aluno = Aluno.objects.create(nome='Bruno Lima', matricula='N103')
         disciplina = Disciplina.objects.create(nome='Matematica', codigo='MAT102')

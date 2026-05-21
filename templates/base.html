@@ -64,18 +64,27 @@
             </header>
 
             {% block content %}{% endblock %}
-            </main>
-            </div>
+        </main>
+    </div>
 
     <footer class="footer">
         <div class="footer-content">
-            <p>© 2026 Portal Universitário</p>
-
-            <div class="footer-links">
-                <a href="{% url 'suporte' %}">Suporte</a>
+            <nav class="footer-column footer-links" aria-label="Links úteis">
+                <h2>Links úteis</h2>
+                <a href="{% url 'suporte' %}">Suporte acadêmico</a>
                 <a href="{% url 'contato' %}">Contato</a>
-                <a href="{% url 'politicas' %}">Políticas</a>
-            </div>
+                <a href="{% url 'politicas' %}">Políticas do portal</a>
+            </nav>
+
+            <section class="footer-column" aria-labelledby="footer-coordination-title">
+                <h2 id="footer-coordination-title">Coordenação do curso</h2>
+                <p>Coordenação Acadêmica</p>
+                <span>Atendimento e orientações do Portal Universitário.</span>
+            </section>
+
+            <a class="footer-logo" href="{% url 'portal' %}" aria-label="Portal Tech">
+                <img src="{% static 'assets/brand/footer-logo.png' %}" alt="Portal Tech">
+            </a>
         </div>
     </footer>
 

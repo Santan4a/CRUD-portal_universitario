@@ -1,5 +1,3 @@
-from dotenv import load_dotenv
-from openai import OpenAI
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -16,11 +14,35 @@ from faltas.models import Falta
 from notas.models import Nota
 from users.access import is_aluno, is_professor, role_required
 
-load_dotenv()
 
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
-)
+def criar_cliente_openai():
+    try:
+        from dotenv import load_dotenv
+    except ModuleNotFoundError:
+        load_dotenv = None
+
+    try:
+        from openai import OpenAI
+    except ModuleNotFoundError as exc:
+        raise RuntimeError('A biblioteca openai não está instalada.') from exc
+
+    if load_dotenv:
+        load_dotenv()
+
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        raise RuntimeError('OPENAI_API_KEY não configurada.')
+
+    return OpenAI(api_key=api_key)
+
+
+def resposta_tutor_indisponivel():
+    return JsonResponse({
+        'resposta': (
+            'Tutor IA temporariamente indisponível. '
+            'Verifique a configuração da API OpenAI.'
+        )
+    })
 
 
 @role_required('professor')
@@ -66,6 +88,11 @@ def dashboard_aluno(request, id):
     
     notas = Nota.objects.filter(aluno=aluno)
     faltas = Falta.objects.filter(aluno=aluno)
+    disciplina_ids = list(aluno.disciplinas.values_list('id', flat=True))
+
+    if disciplina_ids:
+        notas = notas.filter(disciplina_id__in=disciplina_ids)
+        faltas = faltas.filter(disciplina_id__in=disciplina_ids)
     
     if notas.exists():
         soma_medias = sum([nota.media() for nota in notas])
@@ -103,7 +130,11 @@ def minha_area(request):
         faltas = Falta.objects.filter(aluno=aluno).select_related('disciplina')
         disciplinas = list(aluno.disciplinas.all())
 
-        if not disciplinas:
+        if disciplinas:
+            disciplina_ids = [disciplina.id for disciplina in disciplinas]
+            notas = notas.filter(disciplina_id__in=disciplina_ids)
+            faltas = faltas.filter(disciplina_id__in=disciplina_ids)
+        else:
             disciplinas = [nota.disciplina for nota in notas]
 
         if notas.exists():
@@ -141,6 +172,8 @@ def tutor_ia(request):
 
             pergunta = data.get('mensagem')
 
+            client = criar_cliente_openai()
+
             resposta = client.chat.completions.create(
 
                 model="gpt-4.1-mini",
@@ -168,12 +201,10 @@ def tutor_ia(request):
                 'resposta': texto
             })
 
-        except Exception as e:
+        except Exception:
 
-                return JsonResponse({
-                    'resposta': '''
-                    Tutor IA temporariamente indisponível.
+            return resposta_tutor_indisponivel()
 
-                    Verifique os créditos da API OpenAI.
-                    '''
-                })
+    return JsonResponse({
+        'resposta': 'Método não permitido.'
+    }, status=405)

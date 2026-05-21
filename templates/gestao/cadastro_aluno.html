@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block page_title %}Cadastrar aluno | Portal Universitário{% endblock %}
+{% block page_title %}{% if aluno %}Editar aluno{% else %}Cadastrar aluno{% endif %} | Portal Universitário{% endblock %}
 {% block eyebrow %}Gestão da faculdade{% endblock %}
-{% block title %}Cadastrar aluno{% endblock %}
+{% block title %}{% if aluno %}Editar aluno{% else %}Cadastrar aluno{% endif %}{% endblock %}
 
 {% block header_actions %}
 <a class="button" href="{% url 'dashboard_gestao' %}">Voltar</a>
@@ -41,7 +41,7 @@
         </section>
 
         <div class="form-actions">
-            <button type="submit">Salvar aluno</button>
+            <button type="submit">{% if aluno %}Salvar alterações{% else %}Salvar aluno{% endif %}</button>
             <a class="button" href="{% url 'dashboard_gestao' %}">Cancelar</a>
         </div>
     </form>

@@ -27,7 +27,7 @@
 
     <section class="data-panel">
         <div class="panel-header">
-            <h2>Últimos alunos</h2>
+            <h2>Alunos cadastrados</h2>
             <span>{{ total_alunos }} aluno(s)</span>
         </div>
 
@@ -39,10 +39,11 @@
                         <th>Matrícula</th>
                         <th>Curso</th>
                         <th>Disciplinas</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for aluno in ultimos_alunos %}
+                    {% for aluno in alunos %}
                     <tr>
                         <td>
                             <div class="person-cell">
@@ -56,10 +57,15 @@
                         <td>{{ aluno.matricula }}</td>
                         <td>{{ aluno.curso }}</td>
                         <td>{{ aluno.disciplinas.count }}</td>
+                        <td>
+                            <div class="row-actions">
+                                <a class="button" href="{% url 'editar_aluno_gestao' aluno.id %}">Editar</a>
+                            </div>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4">
+                        <td colspan="5">
                             <div class="empty-state">
                                 <strong>Nenhum aluno cadastrado</strong>
                                 <span>Cadastre um aluno para iniciar a gestão acadêmica.</span>

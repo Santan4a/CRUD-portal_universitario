@@ -176,7 +176,7 @@ Para adicionar ou alterar um curso, edite esse JSON mantendo este formato:
 
 ```json
 {
-  "Sistemas de Informação": [
+  "Bacharelado em Sistemas de Informação e Transformação Digital": [
     {
       "codigo": "SI101",
       "nome": "Algoritmos e Programação"

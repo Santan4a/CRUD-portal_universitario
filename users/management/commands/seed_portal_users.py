@@ -78,7 +78,7 @@ class Command(BaseCommand):
             defaults={
                 'user': aluno_user,
                 'nome': 'Aluno Demo',
-                'curso': 'Sistemas de Informação',
+                'curso': 'Bacharelado em Sistemas de Informação e Transformação Digital',
             },
         )
         disciplinas = vincular_disciplinas_do_curso(aluno)
