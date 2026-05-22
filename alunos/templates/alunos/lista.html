@@ -4,9 +4,7 @@
 {% block eyebrow %}Cadastro{% endblock %}
 {% block title %}Alunos{% endblock %}
 
-{% block header_actions %}
-<a class="button button-primary" href="/alunos/novo/">Novo Aluno</a>
-{% endblock %}
+{% block header_actions %}{% endblock %}
 
 {% block content %}
 <div class="content-stack">
@@ -57,17 +55,9 @@
             <td>{{ aluno.curso|default:"Não informado" }}</td>
             <td>
               <div class="row-actions">
-                <a class="button" href="/alunos/dashboard/{{ aluno.id }}/"
-                  >Dashboard</a
-                >
-                <a class="button" href="/alunos/editar/{{ aluno.id }}/"
-                  >Editar</a
-                >
-                <a
-                  class="button button-danger"
-                  href="/alunos/excluir/{{ aluno.id }}/"
-                  >Excluir</a
-                >
+                <a class="button" href="/alunos/dashboard/{{ aluno.id }}/">
+                  Dashboard
+                </a>
               </div>
             </td>
           </tr>
@@ -76,7 +66,7 @@
             <td colspan="4">
               <div class="empty-state">
                 <strong>Nenhum aluno cadastrado</strong>
-                <span>Use o botão Novo Aluno para começar.</span>
+                <span>Não há registros.</span>
               </div>
             </td>
           </tr>

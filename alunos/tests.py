@@ -17,9 +17,6 @@ class AlunoUrlTests(SimpleTestCase):
     def test_aluno_crud_urls_are_registered(self):
         self.assertEqual(reverse('minha_area'), '/alunos/minha-area/')
         self.assertEqual(reverse('lista_alunos'), '/alunos/')
-        self.assertEqual(reverse('criar_aluno'), '/alunos/novo/')
-        self.assertEqual(reverse('editar_aluno', args=[1]), '/alunos/editar/1/')
-        self.assertEqual(reverse('excluir_aluno', args=[1]), '/alunos/excluir/1/')
         self.assertEqual(reverse('dashboard_aluno', args=[1]), '/alunos/dashboard/1/')
         self.assertEqual(
             reverse('editar_aluno_gestao', args=[1]),

@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render, redirect
+from django.core.exceptions import PermissionDenied
 
 from alunos.forms import GestaoAlunoForm
 from alunos.models import Aluno
@@ -16,16 +17,19 @@ def portal_redirect(request):
     if role == 'aluno':
         return redirect('minha_area')
 
-    if role == 'gestao':
+    elif role == 'gestao':
         return redirect('dashboard_gestao')
 
-    if role == 'professor':
+    elif role == 'professor':
         return redirect('lista_alunos')
 
-    return redirect('login')
+    elif role == 'superuser':
+        return redirect('dashboard_gestao')
+
+    raise PermissionDenied("Usuário sem perfil válido.")
 
 
-@role_required('gestao')
+@role_required('gestao', 'superuser')
 def dashboard_gestao(request):
     alunos = Aluno.objects.prefetch_related('disciplinas').order_by('-id')
     total_cursos = (
@@ -45,7 +49,7 @@ def dashboard_gestao(request):
     return render(request, "gestao/dashboard.html", context)
 
 
-@role_required('gestao')
+@role_required('gestao', 'superuser')
 def cadastrar_aluno_gestao(request):
     form = GestaoAlunoForm(request.POST or None)
 
@@ -63,7 +67,7 @@ def cadastrar_aluno_gestao(request):
     )
 
 
-@role_required('gestao')
+@role_required('gestao', 'superuser')
 def editar_aluno_gestao(request, id):
     aluno = get_object_or_404(Aluno, id=id)
     form = GestaoAlunoForm(request.POST or None, instance=aluno)
@@ -86,8 +90,24 @@ def editar_aluno_gestao(request, id):
 def contato(request):
     return render(request, 'contato.html')
 
+
 def suporte(request):
     return render(request, 'suporte.html')
 
+
 def politicas(request):
     return render(request, 'politicas.html')
+
+@role_required('gestao', 'superuser')
+def excluir_aluno_gestao(request, id):
+    aluno = get_object_or_404(Aluno, id=id)
+
+    if request.method == 'POST':
+        aluno.delete()
+        return redirect('dashboard_gestao')
+
+    return render(
+        request,
+        'gestao/confirmar_exclusao.html',
+        {'aluno': aluno}
+    )

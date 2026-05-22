@@ -58,9 +58,10 @@
                         <td>{{ aluno.curso }}</td>
                         <td>{{ aluno.disciplinas.count }}</td>
                         <td>
-                            <div class="row-actions">
-                                <a class="button" href="{% url 'editar_aluno_gestao' aluno.id %}">Editar</a>
-                            </div>
+                    <div class="row-actions">
+                        <a class="button" href="{% url 'editar_aluno_gestao' aluno.id %}">Editar</a>
+                        <a class="button button-danger" href="{% url 'excluir_aluno_gestao' aluno.id %}">Excluir</a>
+                    </div>
                         </td>
                     </tr>
                     {% empty %}

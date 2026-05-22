@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block page_title %}Excluir Aluno{% endblock %}
+{% block eyebrow %}Gestão{% endblock %}
+{% block title %}Confirmar exclusão{% endblock %}
+
+{% block content %}
+<div class="content-stack">
+    <section class="data-panel">
+        <div class="panel-header">
+            <h2>Excluir aluno</h2>
+        </div>
+
+        <p>Tem certeza que deseja excluir <strong>{{ aluno.nome }}</strong>?</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row-actions">
+                <button type="submit" class="button button-danger">Excluir</button>
+                <a href="{% url 'dashboard_gestao' %}" class="button">Cancelar</a>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

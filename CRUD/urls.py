@@ -53,6 +53,11 @@ urlpatterns = [
         name="editar_aluno_gestao"
     ),
 
+    path(
+    "gestao/alunos/<int:id>/excluir/",
+    views.excluir_aluno_gestao,
+    name="excluir_aluno_gestao"
     
+    ),
 
 ]
