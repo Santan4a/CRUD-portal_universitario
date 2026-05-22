@@ -3,6 +3,7 @@ from datetime import date
 from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from disciplinas.catalogo import cursos_disponiveis, disciplinas_do_curso
 from disciplinas.models import Disciplina
@@ -140,19 +141,21 @@ class AlunoPageRenderTests(TestCase):
 class AlunoMatriculaTests(TestCase):
     def test_aluno_sem_matricula_recebe_proxima_sequencia(self):
         Aluno.objects.all().delete()
+        ano = timezone.localdate().year
 
         primeiro = Aluno.objects.create(nome='Ana Silva')
         segundo = Aluno.objects.create(nome='Bruno Lima')
 
-        self.assertEqual(primeiro.matricula, 'A001')
-        self.assertEqual(segundo.matricula, 'A002')
+        self.assertEqual(primeiro.matricula, f'ALU{ano}0001')
+        self.assertEqual(segundo.matricula, f'ALU{ano}0002')
 
     def test_matricula_automatica_continua_a_maior_existente(self):
-        Aluno.objects.create(nome='Ana Silva', matricula='A009')
+        ano = timezone.localdate().year
+        Aluno.objects.create(nome='Ana Silva', matricula=f'ALU{ano}0009')
 
         aluno = Aluno.objects.create(nome='Bruno Lima')
 
-        self.assertEqual(aluno.matricula, 'A010')
+        self.assertEqual(aluno.matricula, f'ALU{ano}0010')
 
 
 class GestaoAlunoFormTests(TestCase):
@@ -179,7 +182,7 @@ class GestaoAlunoFormTests(TestCase):
             Disciplina.objects.filter(codigo__in=codigos_esperados).count(),
             len(codigos_esperados),
         )
-        self.assertRegex(aluno.matricula, r'^A\d{3}$')
+        self.assertRegex(aluno.matricula, r'^ALU\d{8}$')
 
     def test_curso_do_formulario_vem_da_matriz_json(self):
         form = GestaoAlunoForm()
