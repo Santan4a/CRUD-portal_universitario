@@ -74,9 +74,8 @@ class Command(BaseCommand):
         )
 
         aluno, _ = Aluno.objects.update_or_create(
-            matricula='A001',
+            user=aluno_user,
             defaults={
-                'user': aluno_user,
                 'nome': 'Aluno Demo',
                 'curso': 'Bacharelado em Sistemas de Informação e Transformação Digital',
             },
