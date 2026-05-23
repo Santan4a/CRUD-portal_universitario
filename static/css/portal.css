@@ -395,6 +395,11 @@ h2 {
         linear-gradient(90deg, #ffffff, #f6faff 70%, var(--aqua-soft));
 }
 
+.panel-title {
+    display: grid;
+    gap: 4px;
+}
+
 .panel-header h2 {
     color: var(--brand-dark);
     font-weight: 900;
