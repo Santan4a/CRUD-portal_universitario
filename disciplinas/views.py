@@ -16,35 +16,30 @@ def lista_disciplinas(request):
     if is_aluno(request.user):
         aluno = getattr(request.user, 'aluno', None)
         disciplinas = aluno.disciplinas.all() if aluno else Disciplina.objects.none()
+        return render(
+            request,
+            'disciplinas/lista.html',
+            {
+                'disciplinas': disciplinas,
+                'can_manage': False,
+            }
+        )
+
     elif is_professor(request.user):
-        disciplinas = Disciplina.objects.all()
+        # 🔥 professor não tem acesso
+        raise PermissionDenied
+
     else:
         raise PermissionDenied
 
-    return render(
-        request,
-        'disciplinas/lista.html',
-        {
-            'disciplinas': disciplinas,
-            'can_manage': is_professor(request.user),
-        }
-    )
 
-
-@role_required('professor')
+@role_required('gestao')
 def criar_disciplina(request):
-
-    form = DisciplinaForm(
-        request.POST or None
-    )
+    form = DisciplinaForm(request.POST or None)
 
     if form.is_valid():
-
         form.save()
-
-        return redirect(
-            'lista_disciplinas'
-        )
+        return redirect('lista_disciplinas')
 
     return render(
         request,
@@ -55,26 +50,14 @@ def criar_disciplina(request):
     )
 
 
-@role_required('professor')
+@role_required('gestao')
 def editar_disciplina(request, id):
-
-    disciplina = get_object_or_404(
-        Disciplina,
-        id=id
-    )
-
-    form = DisciplinaForm(
-        request.POST or None,
-        instance=disciplina
-    )
+    disciplina = get_object_or_404(Disciplina, id=id)
+    form = DisciplinaForm(request.POST or None, instance=disciplina)
 
     if form.is_valid():
-
         form.save()
-
-        return redirect(
-            'lista_disciplinas'
-        )
+        return redirect('lista_disciplinas')
 
     return render(
         request,
@@ -85,21 +68,13 @@ def editar_disciplina(request, id):
     )
 
 
-@role_required('professor')
+@role_required('gestao')
 def excluir_disciplina(request, id):
-
-    disciplina = get_object_or_404(
-        Disciplina,
-        id=id
-    )
+    disciplina = get_object_or_404(Disciplina, id=id)
 
     if request.method == 'POST':
-
         disciplina.delete()
-
-        return redirect(
-            'lista_disciplinas'
-        )
+        return redirect('lista_disciplinas')
 
     return render(
         request,

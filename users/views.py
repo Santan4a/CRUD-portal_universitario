@@ -24,7 +24,7 @@ def portal_redirect(request):
         return redirect('lista_alunos')
 
     elif role == 'superuser':
-        return redirect('dashboard_gestao')
+        return redirect('/admin/')
 
     raise PermissionDenied("Usuário sem perfil válido.")
 

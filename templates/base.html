@@ -28,7 +28,6 @@
                     <a href="{% url 'lista_notas' %}" class="{% if '/notas/' in request.path %}is-active{% endif %}">Notas</a>
                 {% elif user_is_professor %}
                     <a href="{% url 'lista_alunos' %}" class="{% if '/alunos/' in request.path and '/minha-area/' not in request.path %}is-active{% endif %}">Alunos</a>
-                    <a href="{% url 'lista_disciplinas' %}" class="{% if '/disciplinas/' in request.path %}is-active{% endif %}">Disciplinas</a>
                     <a href="{% url 'lista_notas' %}" class="{% if '/notas/' in request.path %}is-active{% endif %}">Notas</a>
                     <a href="{% url 'lista_faltas' %}" class="{% if '/faltas/' in request.path %}is-active{% endif %}">Faltas</a>
                 {% elif user_is_aluno %}
