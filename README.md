@@ -1,178 +1,363 @@
-# CRUD - Portal Universitario
+# CRUD - Portal Universitário
 
-Projeto Django para gerenciamento academico com cadastros de alunos, disciplinas e notas.
+Projeto desenvolvido em **Django** para gerenciamento acadêmico universitário, com controle de:
+
+- Cadastro de alunos
+- Disciplinas
+- Notas
+- Faltas
+- Gestão acadêmica
+- Perfis de acesso (Aluno, Professor e Gestão)
+
+---
+
+## Tecnologias utilizadas
+
+- Python 3.12+
+- Django
+- SQLite (desenvolvimento local)
+- HTML / CSS
+- Shell Script (`.sh`)
+- Virtual Environment (`venv`)
+
+---
 
 ## Requisitos
 
+Antes de executar o projeto, tenha instalado:
+
 - Python 3.12 ou superior
 - pip
-- Git, se for clonar o projeto
+- Git (caso vá clonar o projeto)
 
-As dependencias do projeto estao em `requirements.txt`.
+As dependências Python estão em:
 
-## Como executar no Windows
+```text
+requirements.txt
+```
 
-Abra o PowerShell na pasta onde deseja deixar o projeto.
+---
 
-### 1. Entrar na pasta do projeto
+# Instalação e execução rápida (Automatizada)
 
-Se voce ja tem o projeto baixado:
+Agora o projeto possui scripts de automação para facilitar a instalação e execução.
+
+---
+
+## Script de setup
+
+Arquivo:
+
+```text
+setup.sh
+```
+
+Esse script faz automaticamente:
+
+- Detecta se o Python instalado é `python` ou `python3`
+- Cria o ambiente virtual `.venv` caso ele não exista
+- Ativa o ambiente virtual
+- Atualiza o pip
+- Instala todas as dependências de `requirements.txt`
+
+### Rodar:
+
+```bash
+bash setup.sh
+```
+
+---
+
+## Script de execução
+
+Arquivo:
+
+```text
+run.sh
+```
+
+Esse script faz automaticamente:
+
+- Detecta o Python correto (`python` ou `python3`)
+- Ativa o ambiente virtual
+- Executa as migrations
+- Inicia o servidor Django
+
+### Rodar:
+
+```bash
+bash run.sh
+```
+
+---
+
+## Fluxo completo (mais simples)
+
+Depois de clonar o projeto:
+
+### Primeira vez:
+
+```bash
+bash setup.sh
+```
+
+### Depois para rodar:
+
+```bash
+bash run.sh
+```
+
+---
+
+# Execução manual (sem scripts)
+
+Caso queira fazer tudo manualmente:
+
+---
+
+## Windows (PowerShell)
+
+### 1. Entrar na pasta
 
 ```powershell
 cd caminho\para\CRUD-portal_universitario
 ```
 
-Se estiver clonando pelo Git:
+---
 
-```powershell
-git clone <url-do-repositorio>
-cd CRUD-portal_universitario
-```
-
-### 2. Criar o ambiente virtual
+### 2. Criar ambiente virtual
 
 ```powershell
 python -m venv .venv
 ```
 
-### 3. Ativar o ambiente virtual
+---
+
+### 3. Ativar ambiente virtual
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-Se o PowerShell bloquear a ativacao do ambiente, rode:
+Se der bloqueio:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 ```
 
-### 4. Instalar as dependencias
+---
+
+### 4. Instalar dependências
 
 ```powershell
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 5. Aplicar as migrations
+---
+
+### 5. Rodar migrations
 
 ```powershell
 python manage.py migrate
 ```
 
-### 6. Executar o servidor
+---
+
+### 6. Rodar servidor
 
 ```powershell
 python manage.py runserver
 ```
 
-Acesse no navegador:
+---
 
-```text
-http://127.0.0.1:8000/
-```
+## Linux
 
-A rota inicial abre a tela de login. Depois de autenticar, o usuario e enviado para a area do seu perfil.
-
-## Como executar no Linux
-
-Abra o terminal na pasta onde deseja deixar o projeto.
-
-### 1. Entrar na pasta do projeto
-
-Se voce ja tem o projeto baixado:
+### 1. Entrar na pasta
 
 ```bash
 cd /caminho/para/CRUD-portal_universitario
 ```
 
-Se estiver clonando pelo Git:
+---
 
-```bash
-git clone <url-do-repositorio>
-cd CRUD-portal_universitario
-```
-
-### 2. Criar o ambiente virtual
+### 2. Criar ambiente virtual
 
 ```bash
 python3 -m venv .venv
 ```
 
-Em algumas distribuicoes, pode ser necessario instalar o pacote de venv antes:
+Caso necessário:
 
 ```bash
 sudo apt install python3-venv
 ```
 
-### 3. Ativar o ambiente virtual
+---
+
+### 3. Ativar ambiente virtual
 
 ```bash
 source .venv/bin/activate
 ```
 
-### 4. Instalar as dependencias
+---
+
+### 4. Instalar dependências
 
 ```bash
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 5. Aplicar as migrations
+---
+
+### 5. Rodar migrations
 
 ```bash
 python manage.py migrate
 ```
 
-### 6. Executar o servidor
+---
+
+### 6. Rodar servidor
 
 ```bash
 python manage.py runserver
 ```
 
-Acesse no navegador:
+---
+
+# Acesso ao sistema
+
+Abra no navegador:
 
 ```text
 http://127.0.0.1:8000/
 ```
 
-A rota inicial abre a tela de login. Depois de autenticar, o usuario e enviado para a area do seu perfil.
+A rota inicial abre a tela de login.
 
-## Rotas principais
+Após autenticação, o usuário é redirecionado para sua área correspondente.
 
-- `http://127.0.0.1:8000/` - login
-- `http://127.0.0.1:8000/alunos/`
-- `http://127.0.0.1:8000/gestao/dashboard/`
-- `http://127.0.0.1:8000/gestao/alunos/novo/`
-- `http://127.0.0.1:8000/disciplinas/`
-- `http://127.0.0.1:8000/notas/`
-- `http://127.0.0.1:8000/logout/`
-- `http://127.0.0.1:8000/admin/`
+---
 
-## Criar usuario para acesso
+# Rotas principais
 
-Para acessar o portal e o painel `/admin/`, crie um superusuario:
+- `/` → Login
+- `/alunos/`
+- `/gestao/dashboard/`
+- `/gestao/alunos/novo/`
+- `/disciplinas/`
+- `/notas/`
+- `/logout/`
+- `/admin/`
+
+---
+
+# Perfis de acesso
+
+O sistema possui três tipos de usuários:
+
+### Aluno
+
+Visualiza:
+
+- Área acadêmica
+- Notas
+- Faltas
+- Disciplinas matriculadas
+- Curso
+
+---
+
+### Professor
+
+Gerencia:
+
+- Alunos
+- Disciplinas
+- Notas
+- Faltas
+
+---
+
+### Gestão
+
+Acessa:
+
+- Dashboard administrativo
+- Cadastro de novos alunos
+- Vinculação de curso
+
+---
+
+# Usuários de teste
+
+Criados automaticamente pelas migrations:
+
+```bash
+python manage.py migrate
+```
+
+Se necessário:
+
+```bash
+python manage.py seed_portal_users
+```
+
+---
+
+## Credenciais
+
+### Aluno
+
+```text
+Usuário: aluno
+Senha: aluno123
+```
+
+---
+
+### Professor
+
+```text
+Usuário: professor
+Senha: professor123
+```
+
+---
+
+### Gestão
+
+```text
+Usuário: gestao
+Senha: gestao123
+```
+
+---
+
+# Criar superusuário
+
+Para acessar o Django Admin:
 
 ```bash
 python manage.py createsuperuser
 ```
 
-No Windows, o comando e o mesmo se o ambiente virtual estiver ativo:
+---
 
-```powershell
-python manage.py createsuperuser
-```
+# Matriz curricular (JSON)
 
-## Matriz curricular em JSON
-
-As disciplinas vinculadas automaticamente ao cadastrar um aluno pela gestao ficam em:
+Arquivo:
 
 ```text
 disciplinas/data/cursos_disciplinas.json
 ```
 
-Para adicionar ou alterar um curso, edite esse JSON mantendo este formato:
+Formato:
 
 ```json
 {
@@ -185,77 +370,45 @@ Para adicionar ou alterar um curso, edite esse JSON mantendo este formato:
 }
 ```
 
-Ao selecionar o curso no cadastro de aluno, o portal cria as disciplinas que ainda nao existem e vincula todas elas ao aluno salvo.
+Ao cadastrar um aluno com um curso:
 
-## Usuarios de teste
+- O sistema verifica as disciplinas
+- Cria as que não existem
+- Vincula automaticamente ao aluno
 
-O portal usa tres perfis de acesso:
+---
 
-- `aluno`: visualiza somente sua area academica, notas, faltas, disciplinas cursando e curso.
-- `professor`: gerencia alunos, disciplinas, notas e faltas.
-- `gestao`: acessa a tela de gestao da faculdade e cadastra novos alunos com curso.
+# Testes
 
-Esses usuarios sao criados automaticamente pela migration
-`users.0002_create_default_portal_users` e pela migration
-`users.0003_create_default_gestao_user` quando o comando abaixo e executado:
-
-```bash
-python manage.py migrate
-```
-
-Se o banco local ja existia antes dessa migration, ou se as senhas nao
-funcionarem, rode:
-
-```bash
-python manage.py seed_portal_users
-```
-
-Credenciais de desenvolvimento:
-
-```text
-Usuario: aluno
-Senha: aluno123
-```
-
-```text
-Usuario: professor
-Senha: professor123
-```
-
-```text
-Usuario: gestao
-Senha: gestao123
-```
-
-## Rodar testes
-
-Windows:
-
-```powershell
-python manage.py test
-```
-
-Linux:
+Rodar:
 
 ```bash
 python manage.py test
 ```
 
-## Verificar problemas no projeto
+---
+
+# Verificação do projeto
+
+Rodar:
 
 ```bash
 python manage.py check
 ```
 
-## Variaveis de ambiente para producao
+---
 
-Para rodar em producao, configure pelo menos:
+# Variáveis de ambiente para produção
+
+Obrigatórias:
 
 - `DJANGO_PRODUCTION=True`
-- `DJANGO_SECRET_KEY=<uma-chave-secreta-forte>`
-- `DJANGO_ALLOWED_HOSTS=<dominios-permitidos>`
+- `DJANGO_SECRET_KEY`
+- `DJANGO_ALLOWED_HOSTS`
 
-Exemplo no Linux:
+---
+
+## Linux
 
 ```bash
 export DJANGO_PRODUCTION=True
@@ -263,7 +416,9 @@ export DJANGO_SECRET_KEY="troque-por-uma-chave-forte"
 export DJANGO_ALLOWED_HOSTS="seudominio.com,www.seudominio.com"
 ```
 
-Exemplo no PowerShell:
+---
+
+## PowerShell
 
 ```powershell
 $env:DJANGO_PRODUCTION="True"
@@ -271,4 +426,51 @@ $env:DJANGO_SECRET_KEY="troque-por-uma-chave-forte"
 $env:DJANGO_ALLOWED_HOSTS="seudominio.com,www.seudominio.com"
 ```
 
-Para desenvolvimento local, essas variaveis nao sao obrigatorias.
+---
+
+# Estrutura de automação adicionada
+
+Scripts implementados:
+
+```text
+setup.sh
+run.sh
+```
+
+### `setup.sh`
+
+Responsável por:
+
+- Detectar Python automaticamente
+- Criar `.venv`
+- Ativar ambiente virtual
+- Atualizar pip
+- Instalar dependências
+
+---
+
+### `run.sh`
+
+Responsável por:
+
+- Detectar Python automaticamente
+- Ativar `.venv`
+- Rodar migrations
+- Iniciar servidor Django
+
+---
+
+Isso permite executar o projeto com apenas:
+
+```bash
+bash setup.sh
+bash run.sh
+```
+
+Sem precisar repetir todos os comandos manualmente.
+
+---
+
+# Autor
+
+Projeto acadêmico desenvolvido para gerenciamento universitário usando Django.
