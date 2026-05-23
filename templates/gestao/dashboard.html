@@ -4,10 +4,6 @@
 {% block eyebrow %}Gestão da faculdade{% endblock %}
 {% block title %}Gestão acadêmica{% endblock %}
 
-{% block header_actions %}
-<a class="button button-primary" href="{% url 'cadastrar_aluno_gestao' %}">Cadastrar aluno</a>
-{% endblock %}
-
 {% block content %}
 <div class="content-stack">
     <section class="metric-strip" aria-label="Resumo da gestão">
@@ -27,8 +23,11 @@
 
     <section class="data-panel">
         <div class="panel-header">
-            <h2>Alunos cadastrados</h2>
-            <span>{{ total_alunos }} aluno(s)</span>
+            <div class="panel-title">
+                <h2>Alunos cadastrados</h2>
+                <span>{{ total_alunos }} aluno(s)</span>
+            </div>
+            <a class="button button-primary" href="{% url 'cadastrar_aluno_gestao' %}">Cadastrar aluno</a>
         </div>
 
         <div class="table-wrap">

@@ -4,12 +4,6 @@
 {% block eyebrow %}Avaliações{% endblock %}
 {% block title %}{% if can_manage %}Notas{% else %}Minhas Notas{% endif %}{% endblock %}
 
-{% block header_actions %}
-    {% if can_manage %}
-    <a class="button button-primary" href="{% url 'criar_nota' %}">Nova Nota</a>
-    {% endif %}
-{% endblock %}
-
 {% block content %}
 <div class="content-stack">
     <section class="metric-strip" aria-label="Resumo de notas">
@@ -29,8 +23,13 @@
 
     <section class="data-panel">
         <div class="panel-header">
-            <h2>Registros</h2>
-            <span>{{ notas|length }} nota(s)</span>
+            <div class="panel-title">
+                <h2>Registros</h2>
+                <span>{{ notas|length }} nota(s)</span>
+            </div>
+            {% if can_manage %}
+            <a class="button button-primary" href="{% url 'criar_nota' %}">Nova Nota</a>
+            {% endif %}
         </div>
 
         <div class="table-wrap">
