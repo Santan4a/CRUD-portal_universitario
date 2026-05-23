@@ -22,4 +22,13 @@ if [ ! -d ".venv" ]; then
     fi
 fi
 
-$PYTHON -m pip install -r requirements.txt
+if [ -f ".venv/Scripts/python.exe" ]; then
+    VENV_PYTHON=".venv/Scripts/python.exe"
+elif [ -f ".venv/bin/python" ]; then
+    VENV_PYTHON=".venv/bin/python"
+else
+    echo "Python do ambiente virtual não encontrado"
+    exit 1
+fi
+
+$VENV_PYTHON -m pip install -r requirements.txt

@@ -75,7 +75,9 @@
                         <td>
                             <div class="row-actions">
                                 <a class="button" href="{% url 'editar_nota' nota.id %}">Editar</a>
+                                {% if can_delete %}
                                 <a class="button button-danger" href="{% url 'deletar_nota' nota.id %}">Excluir</a>
+                                {% endif %}
                             </div>
                         </td>
                         {% endif %}
