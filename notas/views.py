@@ -5,7 +5,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from alunos.models import Aluno
 from .models import Nota
 from .forms import NotaForm
-from users.access import is_aluno, is_gestao, is_professor, role_required
+from users.access import can_manage_screen, has_screen_access, is_aluno, manage_screen_required
+from users.models import Profile
 
 
 def disciplinas_por_aluno_json():
@@ -32,8 +33,8 @@ def disciplinas_por_aluno_json():
 # LISTAR
 @login_required
 def lista_notas(request):
-    can_manage = is_professor(request.user) or is_gestao(request.user)
-    can_delete = is_professor(request.user)
+    can_manage = can_manage_screen(request.user, Profile.SCREEN_NOTAS)
+    can_delete = can_manage
 
     if is_aluno(request.user):
         aluno = getattr(request.user, 'aluno', None)
@@ -47,6 +48,8 @@ def lista_notas(request):
                 notas = notas.filter(disciplina_id__in=disciplina_ids)
     elif can_manage:
         notas = Nota.objects.all()
+    elif has_screen_access(request.user, Profile.SCREEN_NOTAS):
+        notas = Nota.objects.none()
     else:
         raise PermissionDenied
 
@@ -62,7 +65,7 @@ def lista_notas(request):
 
 
 # CRIAR
-@role_required('professor', 'gestao')
+@manage_screen_required(Profile.SCREEN_NOTAS)
 def criar_nota(request):
     form = NotaForm(request.POST or None)
 
@@ -81,7 +84,7 @@ def criar_nota(request):
 
 
 # EDITAR
-@role_required('professor', 'gestao')
+@manage_screen_required(Profile.SCREEN_NOTAS)
 def editar_nota(request, id):
     nota = get_object_or_404(Nota, id=id)
     form = NotaForm(request.POST or None, instance=nota)
@@ -101,7 +104,7 @@ def editar_nota(request, id):
 
 
 # DELETAR
-@role_required('professor')
+@manage_screen_required(Profile.SCREEN_NOTAS)
 def deletar_nota(request, id):
     nota = get_object_or_404(Nota, id=id)
 

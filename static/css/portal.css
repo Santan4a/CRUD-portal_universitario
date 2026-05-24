@@ -623,6 +623,11 @@ button.button-ghost[type="submit"]:hover {
     gap: 8px;
 }
 
+.form-field.is-hidden,
+.course-preview.is-hidden {
+    display: none !important;
+}
+
 .form-field label {
     color: #516984;
     font-size: 0.84rem;

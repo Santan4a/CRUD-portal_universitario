@@ -135,7 +135,7 @@ class NotaAccessTests(TestCase):
         self.assertEqual(nota.nota1, 8)
         self.assertEqual(nota.nota2, 9)
 
-    def test_gestao_lista_notas_without_delete_action(self):
+    def test_gestao_lista_notas_with_delete_action(self):
         gestao_user = User.objects.create_user(
             username='gestao_lista_nota',
             password='gestao12345'
@@ -151,9 +151,9 @@ class NotaAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Nova Nota')
         self.assertContains(response, 'Editar')
-        self.assertNotContains(response, 'Excluir')
+        self.assertContains(response, 'Excluir')
 
-    def test_gestao_cannot_delete_nota(self):
+    def test_gestao_can_delete_nota(self):
         gestao_user = User.objects.create_user(
             username='gestao_nao_deleta_nota',
             password='gestao12345'
@@ -171,8 +171,8 @@ class NotaAccessTests(TestCase):
 
         response = self.client.post(reverse('deletar_nota', args=[nota.id]))
 
-        self.assertEqual(response.status_code, 403)
-        self.assertTrue(Nota.objects.filter(id=nota.id).exists())
+        self.assertRedirects(response, reverse('lista_notas'))
+        self.assertFalse(Nota.objects.filter(id=nota.id).exists())
 
     def test_nota_form_starts_without_all_disciplines(self):
         form = NotaForm()

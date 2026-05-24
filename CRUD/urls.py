@@ -43,6 +43,11 @@ urlpatterns = [
         name="dashboard_gestao"
     ),
     path(
+        "gestao/usuarios/novo/",
+        views.cadastrar_aluno_gestao,
+        name="cadastrar_usuario_gestao"
+    ),
+    path(
         "gestao/alunos/novo/",
         views.cadastrar_aluno_gestao,
         name="cadastrar_aluno_gestao"
