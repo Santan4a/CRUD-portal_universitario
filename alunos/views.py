@@ -12,7 +12,8 @@ from .models import Aluno
 from .forms import AlunoForm
 from faltas.models import Falta
 from notas.models import Nota
-from users.access import is_aluno, is_professor, role_required
+from users.access import can_manage_screen, is_aluno, is_professor, manage_screen_required
+from users.models import Profile
 
 
 def criar_cliente_openai():
@@ -45,7 +46,7 @@ def resposta_tutor_indisponivel():
     })
 
 
-@role_required('professor')
+@manage_screen_required(Profile.SCREEN_ALUNOS)
 def lista_alunos(request):
     alunos = Aluno.objects.all()
 
@@ -61,7 +62,13 @@ def lista_alunos(request):
 def dashboard_aluno(request, id):
     aluno = get_object_or_404(Aluno, id=id)
 
-    if is_aluno(request.user) and aluno.user_id != request.user.id:
+    if is_aluno(request.user):
+        if aluno.user_id != request.user.id:
+            raise PermissionDenied
+    elif not (
+        can_manage_screen(request.user, Profile.SCREEN_ALUNOS)
+        or can_manage_screen(request.user, Profile.SCREEN_GESTAO)
+    ):
         raise PermissionDenied
     
     notas = Nota.objects.filter(aluno=aluno)

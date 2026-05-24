@@ -13,8 +13,35 @@ class Profile(models.Model):
         (ROLE_GESTAO, 'Gestao'),
     )
 
+    SCREEN_GESTAO = 'gestao'
+    SCREEN_ALUNOS = 'alunos'
+    SCREEN_DISCIPLINAS = 'disciplinas'
+    SCREEN_NOTAS = 'notas'
+    SCREEN_FALTAS = 'faltas'
+
+    SCREEN_CHOICES = (
+        (SCREEN_GESTAO, 'Gestão'),
+        (SCREEN_ALUNOS, 'Alunos'),
+        (SCREEN_DISCIPLINAS, 'Disciplinas'),
+        (SCREEN_NOTAS, 'Notas'),
+        (SCREEN_FALTAS, 'Faltas'),
+    )
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    allowed_screens = models.JSONField(
+        blank=True,
+        default=None,
+        null=True,
+        verbose_name='telas permitidas',
+    )
+    curso = models.CharField(max_length=120, blank=True, default='')
+    disciplinas = models.ManyToManyField(
+        'disciplinas.Disciplina',
+        blank=True,
+        related_name='professores',
+        verbose_name='disciplinas lecionadas',
+    )
 
     matricula = models.CharField(
         max_length=20,

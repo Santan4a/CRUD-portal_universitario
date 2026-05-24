@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block page_title %}{% if aluno %}Editar aluno{% else %}Cadastrar aluno{% endif %} | Portal Universitário{% endblock %}
+{% block page_title %}{% if form_title %}{{ form_title }}{% elif aluno %}Editar aluno{% else %}Cadastrar aluno{% endif %} | Portal Universitário{% endblock %}
 {% block eyebrow %}Gestão da faculdade{% endblock %}
-{% block title %}{% if aluno %}Editar aluno{% else %}Cadastrar aluno{% endif %}{% endblock %}
+{% block title %}{% if form_title %}{{ form_title }}{% elif aluno %}Editar aluno{% else %}Cadastrar aluno{% endif %}{% endblock %}
 
 {% block header_actions %}
 <a class="button" href="{% url 'dashboard_gestao' %}">Voltar</a>
@@ -19,7 +19,7 @@
 
         <div class="form-grid">
             {% for field in form %}
-                <div class="form-field">
+                <div class="form-field" data-field-name="{{ field.name }}">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
                     {% if field.help_text %}
@@ -41,7 +41,7 @@
         </section>
 
         <div class="form-actions">
-            <button type="submit">{% if aluno %}Salvar alterações{% else %}Salvar aluno{% endif %}</button>
+            <button type="submit">{% if submit_label %}{{ submit_label }}{% elif aluno %}Salvar alterações{% else %}Salvar aluno{% endif %}</button>
             <a class="button" href="{% url 'dashboard_gestao' %}">Cancelar</a>
         </div>
     </form>
@@ -50,10 +50,23 @@
 {{ disciplinas_por_curso|json_script:"disciplinas-por-curso-data" }}
 <script>
 (function () {
-    const curso = document.getElementById('id_curso');
-    const dados = document.getElementById('disciplinas-por-curso-data');
-    const lista = document.getElementById('course-discipline-list');
-    const contador = document.getElementById('course-discipline-count');
+    const tipoUsuario = document.getElementById("id_role") || document.querySelector(`[name="role"]`);
+    const nome = document.getElementById("id_nome");
+    const usuario = document.getElementById("id_username");
+    const email = document.getElementById("id_email");
+    const emailInstitucionalProfessor = `{{ email_institucional_professor|default:""|escapejs }}`;
+    const proximosUsuarios = {
+        aluno: `{{ proximo_usuario_aluno|default:""|escapejs }}`,
+        professor: `{{ proximo_usuario_professor|default:""|escapejs }}`
+    };
+    const curso = document.getElementById("id_curso") || document.querySelector(`[name="curso"]`);
+    const disciplina = document.getElementById("id_disciplina") || document.querySelector(`[name="disciplina"]`);
+    const dados = document.getElementById("disciplinas-por-curso-data");
+    const lista = document.getElementById("course-discipline-list");
+    const contador = document.getElementById("course-discipline-count");
+    const preview = document.querySelector(".course-preview");
+    const cursoCampo = document.querySelector(`[data-field-name="curso"]`) || (curso ? curso.closest(".form-field") : null);
+    const disciplinaCampo = document.querySelector(`[data-field-name="disciplina"]`) || (disciplina ? disciplina.closest(".form-field") : null);
 
     if (!curso || !dados || !lista || !contador) {
         return;
@@ -61,28 +74,189 @@
 
     const disciplinasPorCurso = JSON.parse(dados.textContent);
 
+    function obterTipoUsuario() {
+        return tipoUsuario ? tipoUsuario.value.toLowerCase() : "";
+    }
+
+    function obterDisciplinasDoCurso() {
+        return disciplinasPorCurso[curso.value] || [];
+    }
+
+    function alternarVisibilidade(elemento, deveExibir) {
+        if (!elemento) {
+            return;
+        }
+
+        elemento.hidden = !deveExibir;
+        elemento.classList.toggle("is-hidden", !deveExibir);
+        elemento.style.display = deveExibir ? "" : "none";
+        elemento.setAttribute("aria-hidden", String(!deveExibir));
+    }
+
     function renderizarDisciplinas() {
-        const disciplinas = disciplinasPorCurso[curso.value] || [];
+        const disciplinas = obterDisciplinasDoCurso();
         lista.replaceChildren();
         contador.textContent = disciplinas.length;
 
         if (!disciplinas.length) {
-            const vazio = document.createElement('li');
-            vazio.className = 'course-preview-empty';
-            vazio.textContent = 'Selecione um curso';
+            const vazio = document.createElement("li");
+            vazio.className = "course-preview-empty";
+            vazio.textContent = "Selecione um curso";
             lista.appendChild(vazio);
             return;
         }
 
-        disciplinas.forEach(function (disciplina) {
-            const item = document.createElement('li');
-            item.textContent = disciplina.nome + ' (' + disciplina.codigo + ')';
+        disciplinas.forEach(function (disciplinaItem) {
+            const item = document.createElement("li");
+            item.textContent = disciplinaItem.nome + " (" + disciplinaItem.codigo + ")";
             lista.appendChild(item);
         });
     }
 
-    curso.addEventListener('change', renderizarDisciplinas);
-    renderizarDisciplinas();
+    function atualizarOpcoesDisciplina() {
+        if (!disciplina) {
+            return;
+        }
+
+        const valorAtual = disciplina.value;
+        const disciplinas = obterDisciplinasDoCurso();
+        const codigosDisponiveis = new Set();
+
+        disciplina.replaceChildren();
+
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = curso.value ? "Selecione uma disciplina" : "Selecione um curso primeiro";
+        disciplina.appendChild(placeholder);
+
+        disciplinas.forEach(function (disciplinaItem) {
+            const opcao = document.createElement("option");
+            opcao.value = disciplinaItem.codigo;
+            opcao.textContent = disciplinaItem.nome + " (" + disciplinaItem.codigo + ")";
+            disciplina.appendChild(opcao);
+            codigosDisponiveis.add(disciplinaItem.codigo);
+        });
+
+        disciplina.value = codigosDisponiveis.has(valorAtual) ? valorAtual : "";
+    }
+
+    function atualizarEmailInstitucionalProfessor() {
+        if (!tipoUsuario || !nome || !email) {
+            return;
+        }
+
+        const deveGerarEmail = tipoUsuario.value === "professor" && emailInstitucionalProfessor;
+
+        if (!deveGerarEmail) {
+            if (email.dataset.emailInstitucionalGerado === "true") {
+                email.value = "";
+                delete email.dataset.emailInstitucionalGerado;
+            }
+
+            email.readOnly = false;
+            return;
+        }
+
+        email.readOnly = true;
+
+        if (!nome.value.trim()) {
+            if (email.dataset.emailInstitucionalGerado === "true") {
+                email.value = "";
+            }
+
+            return;
+        }
+
+        email.value = emailInstitucionalProfessor;
+        email.dataset.emailInstitucionalGerado = "true";
+    }
+
+    function atualizarUsuarioAutomatico() {
+        if (!tipoUsuario || !nome || !usuario) {
+            return;
+        }
+
+        const proximoUsuario = proximosUsuarios[tipoUsuario.value] || "";
+
+        if (!proximoUsuario) {
+            if (usuario.dataset.usuarioAutomaticoGerado === "true") {
+                usuario.value = "";
+                delete usuario.dataset.usuarioAutomaticoGerado;
+            }
+
+            usuario.readOnly = false;
+            return;
+        }
+
+        usuario.readOnly = true;
+
+        if (!nome.value.trim()) {
+            if (usuario.dataset.usuarioAutomaticoGerado === "true") {
+                usuario.value = "";
+            }
+
+            return;
+        }
+
+        usuario.value = proximoUsuario;
+        usuario.dataset.usuarioAutomaticoGerado = "true";
+    }
+
+    function atualizarDisciplinaPorTipo() {
+        if (!disciplina) {
+            return;
+        }
+
+        const deveExibirDisciplina = obterTipoUsuario() === "professor" && Boolean(curso.value);
+
+        alternarVisibilidade(disciplinaCampo, deveExibirDisciplina);
+        disciplina.disabled = !deveExibirDisciplina;
+        disciplina.required = deveExibirDisciplina;
+
+        if (!deveExibirDisciplina) {
+            disciplina.value = "";
+        }
+    }
+
+    function atualizarCursoPorTipo() {
+        const tipo = obterTipoUsuario();
+        const deveExibirCurso = ["aluno", "professor"].includes(tipo);
+
+        alternarVisibilidade(cursoCampo, deveExibirCurso);
+        alternarVisibilidade(preview, tipo === "aluno");
+
+        curso.disabled = !deveExibirCurso;
+        curso.required = deveExibirCurso;
+
+        if (!deveExibirCurso) {
+            curso.value = "";
+        }
+
+        renderizarDisciplinas();
+        atualizarOpcoesDisciplina();
+        atualizarDisciplinaPorTipo();
+    }
+
+    curso.addEventListener("change", atualizarCursoPorTipo);
+
+    if (tipoUsuario) {
+        tipoUsuario.addEventListener("change", function () {
+            atualizarUsuarioAutomatico();
+            atualizarEmailInstitucionalProfessor();
+            atualizarCursoPorTipo();
+        });
+    }
+
+    if (nome) {
+        nome.addEventListener("input", function () {
+            atualizarUsuarioAutomatico();
+            atualizarEmailInstitucionalProfessor();
+        });
+    }
+
+    atualizarUsuarioAutomatico();
+    atualizarEmailInstitucionalProfessor();
+    atualizarCursoPorTipo();
 }());
 </script>
 {% endblock %}

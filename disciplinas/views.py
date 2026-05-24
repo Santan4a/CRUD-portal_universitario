@@ -8,7 +8,8 @@ from django.shortcuts import (
 
 from .models import Disciplina
 from .forms import DisciplinaForm
-from users.access import is_aluno, is_professor, role_required
+from users.access import can_manage_screen, has_screen_access, is_aluno, manage_screen_required
+from users.models import Profile
 
 
 @login_required
@@ -25,15 +26,32 @@ def lista_disciplinas(request):
             }
         )
 
-    elif is_professor(request.user):
-        # 🔥 professor não tem acesso
-        raise PermissionDenied
+    elif can_manage_screen(request.user, Profile.SCREEN_DISCIPLINAS):
+        disciplinas = Disciplina.objects.all()
+        return render(
+            request,
+            'disciplinas/lista.html',
+            {
+                'disciplinas': disciplinas,
+                'can_manage': True,
+            }
+        )
+
+    elif has_screen_access(request.user, Profile.SCREEN_DISCIPLINAS):
+        return render(
+            request,
+            'disciplinas/lista.html',
+            {
+                'disciplinas': Disciplina.objects.none(),
+                'can_manage': False,
+            }
+        )
 
     else:
         raise PermissionDenied
 
 
-@role_required('gestao')
+@manage_screen_required(Profile.SCREEN_DISCIPLINAS)
 def criar_disciplina(request):
     form = DisciplinaForm(request.POST or None)
 
@@ -50,7 +68,7 @@ def criar_disciplina(request):
     )
 
 
-@role_required('gestao')
+@manage_screen_required(Profile.SCREEN_DISCIPLINAS)
 def editar_disciplina(request, id):
     disciplina = get_object_or_404(Disciplina, id=id)
     form = DisciplinaForm(request.POST or None, instance=disciplina)
@@ -68,7 +86,7 @@ def editar_disciplina(request, id):
     )
 
 
-@role_required('gestao')
+@manage_screen_required(Profile.SCREEN_DISCIPLINAS)
 def excluir_disciplina(request, id):
     disciplina = get_object_or_404(Disciplina, id=id)
 
