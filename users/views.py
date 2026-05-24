@@ -45,6 +45,12 @@ def portal_redirect(request):
 @manage_screen_required(Profile.SCREEN_GESTAO)
 def dashboard_gestao(request):
     alunos = Aluno.objects.prefetch_related('disciplinas').order_by('-id')
+    professores = (
+        Profile.objects.filter(role=Profile.ROLE_PROFESSOR)
+        .select_related('user')
+        .prefetch_related('disciplinas')
+        .order_by('-id')
+    )
     total_cursos = (
         Aluno.objects.exclude(curso='')
         .values('curso')
@@ -54,9 +60,11 @@ def dashboard_gestao(request):
 
     context = {
         'total_alunos': alunos.count(),
+        'total_professores': professores.count(),
         'total_cursos': total_cursos,
         'total_disciplinas': Disciplina.objects.count(),
         'alunos': alunos,
+        'professores': professores,
     }
 
     return render(request, "gestao/dashboard.html", context)

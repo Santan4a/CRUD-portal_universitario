@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from alunos.models import Aluno
 from disciplinas.catalogo import cursos_disponiveis, disciplinas_do_curso
+from disciplinas.models import Disciplina
 from users.access import get_default_screens_for_role
 from users.utils import gerar_email_institucional, gerar_senha_inicial_aleatoria, gerar_usuario_aluno_unico, gerar_usuario_professor_unico
 from users.forms import GestaoUsuarioForm
@@ -213,6 +214,36 @@ class GestaoUsuarioViewTests(TestCase):
         self.assertContains(response, response.context['senha_inicial_aleatoria'])
         self.assertNotContains(response, 'Telas permitidas')
         self.assertNotContains(response, 'allowed_screens')
+
+    def test_dashboard_exibe_professores_cadastrados(self):
+        curso = cursos_disponiveis()[0]
+        disciplina_dados = disciplinas_do_curso(curso)[0]
+        disciplina = Disciplina.objects.create(**disciplina_dados)
+        professor_user = User.objects.create_user(
+            username='professor.dashboard',
+            password='prof12345',
+            first_name='Professor',
+            last_name='Dashboard',
+            email='professor.dashboard@portaltech.com',
+        )
+        professor = Profile.objects.create(
+            user=professor_user,
+            role=Profile.ROLE_PROFESSOR,
+            matricula='PROF20260077',
+            curso=curso,
+        )
+        professor.disciplinas.add(disciplina)
+
+        response = self.client.get(reverse('dashboard_gestao'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Professores cadastrados')
+        self.assertContains(response, 'Professor Dashboard')
+        self.assertContains(response, 'PROF20260077')
+        self.assertContains(response, curso)
+        self.assertContains(response, disciplina.nome)
+        self.assertContains(response, disciplina.codigo)
+        self.assertContains(response, 'professor.dashboard@portaltech.com')
 
     def test_cadastro_usuario_regenera_senha_a_cada_abertura(self):
         with patch(
