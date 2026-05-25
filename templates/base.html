@@ -82,6 +82,14 @@
                 </div>
             </header>
 
+            {% if messages %}
+            <div class="message-stack" role="status" aria-live="polite">
+                {% for message in messages %}
+                    <div class="message message-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
             {% block content %}{% endblock %}
 
             <footer class="footer">

@@ -59,6 +59,28 @@ urlpatterns = [
     ),
 
     path(
+        "gestao/professores/<int:id>/editar/",
+        views.editar_professor_gestao,
+        name="editar_professor_gestao"
+    ),
+    path(
+        "gestao/professores/<int:id>/excluir/",
+        views.excluir_professor_gestao,
+        name="excluir_professor_gestao"
+    ),
+
+    path(
+        "gestao/gestores/<int:id>/editar/",
+        views.editar_gestor_gestao,
+        name="editar_gestor_gestao"
+    ),
+    path(
+        "gestao/gestores/<int:id>/excluir/",
+        views.excluir_gestor_gestao,
+        name="excluir_gestor_gestao"
+    ),
+
+    path(
     "gestao/alunos/<int:id>/excluir/",
     views.excluir_aluno_gestao,
     name="excluir_aluno_gestao"
