@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block page_title %}Excluir gestão | Portal Universitário{% endblock %}
+{% block eyebrow %}Gestão{% endblock %}
+{% block title %}Confirmar exclusão{% endblock %}
+
+{% block content %}
+<div class="content-stack">
+    <section class="data-panel confirm-panel">
+        <div class="panel-header">
+            <h2>Excluir usuário gestão</h2>
+        </div>
+
+        <p>
+            Tem certeza que deseja excluir
+            <strong class="confirm-name">{{ gestor.user.get_full_name|default:gestor.user.username }}</strong>?
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row-actions">
+                <button type="submit" class="button button-danger">Excluir</button>
+                <a href="{% url 'dashboard_gestao' %}" class="button">Cancelar</a>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block page_title %}Editar gestão | Portal Universitário{% endblock %}
+{% block eyebrow %}Gestão da faculdade{% endblock %}
+{% block title %}Editar usuário gestão{% endblock %}
+
+{% block header_actions %}
+<a class="button" href="{% url 'dashboard_gestao' %}">Voltar</a>
+{% endblock %}
+
+{% block content %}
+<div class="content-stack">
+    <form class="form-panel" method="POST">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="form-field" data-field-name="{{ field.name }}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit">Salvar alterações</button>
+            <a class="button" href="{% url 'dashboard_gestao' %}">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

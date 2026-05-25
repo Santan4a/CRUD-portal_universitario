@@ -4,6 +4,10 @@
 {% block eyebrow %}Gestão da faculdade{% endblock %}
 {% block title %}Gestão acadêmica{% endblock %}
 
+{% block header_actions %}
+<a class="button button-primary" href="{% url 'cadastrar_usuario_gestao' %}">Cadastrar usuário</a>
+{% endblock %}
+
 {% block content %}
 <div class="content-stack">
     <section class="metric-strip" aria-label="Resumo da gestão">
@@ -16,22 +20,52 @@
             <strong>{{ total_professores }}</strong>
         </article>
         <article class="metric">
+            <span>Usuários gestão</span>
+            <strong>{{ total_gestores }}</strong>
+        </article>
+        <article class="metric">
             <span>Cursos ativos</span>
             <strong>{{ total_cursos }}</strong>
         </article>
-        <article class="metric">
-            <span>Disciplinas</span>
-            <strong>{{ total_disciplinas }}</strong>
-        </article>
     </section>
 
+    <section class="dashboard-toolbar" aria-label="Filtros da gestão">
+        <form class="dashboard-search" method="GET">
+            <div class="dashboard-search-field">
+                <label for="dashboard-search-input">Buscar usuários</label>
+                <input
+                        id="dashboard-search-input"
+                        type="search"
+                        name="q"
+                        value="{{ query }}"
+                        placeholder="Nome, login, matrícula, curso, disciplina ou e-mail"
+                >
+            </div>
+            <div class="dashboard-filter-field">
+                <label for="dashboard-type-select">Tipo</label>
+                <select id="dashboard-type-select" name="tipo">
+                    <option value="todos" {% if tipo_ativo == 'todos' %}selected{% endif %}>Todos</option>
+                    <option value="alunos" {% if tipo_ativo == 'alunos' %}selected{% endif %}>Alunos</option>
+                    <option value="professores" {% if tipo_ativo == 'professores' %}selected{% endif %}>Professores</option>
+                    <option value="gestao" {% if tipo_ativo == 'gestao' %}selected{% endif %}>Gestão</option>
+                </select>
+            </div>
+            <div class="dashboard-search-actions">
+                <button type="submit">Buscar</button>
+                {% if query or tipo_ativo != 'todos' %}
+                    <a class="button" href="{% url 'dashboard_gestao' %}">Limpar</a>
+                {% endif %}
+            </div>
+        </form>
+    </section>
+
+    {% if mostrar_alunos %}
     <section class="data-panel">
         <div class="panel-header">
             <div class="panel-title">
                 <h2>Alunos cadastrados</h2>
-                <span>{{ total_alunos }} aluno(s)</span>
+                <span>{{ alunos.count }} aluno(s)</span>
             </div>
-            <a class="button button-primary" href="{% url 'cadastrar_usuario_gestao' %}">Cadastrar usuário</a>
         </div>
 
         <div class="table-wrap">
@@ -42,6 +76,7 @@
                         <th>Matrícula</th>
                         <th>Curso</th>
                         <th>Disciplinas</th>
+                        <th>Criado em</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -58,8 +93,21 @@
                             </div>
                         </td>
                         <td>{{ aluno.matricula }}</td>
-                        <td>{{ aluno.curso }}</td>
-                        <td>{{ aluno.disciplinas.count }}</td>
+                        <td>
+                            {% if aluno.curso %}
+                                <span class="mini-tag">{{ aluno.curso }}</span>
+                            {% else %}
+                                <span class="cell-subtitle">-</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="mini-tag">{{ aluno.disciplinas.count }}</span></td>
+                        <td>
+                            {% if aluno.user %}
+                                {{ aluno.user.date_joined|date:"d/m/Y" }}
+                            {% else %}
+                                <span class="cell-subtitle">-</span>
+                            {% endif %}
+                        </td>
                         <td>
                             <div class="row-actions">
                                 <a class="button" href="{% url 'editar_aluno_gestao' aluno.id %}">Editar</a>
@@ -69,10 +117,10 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5">
+                        <td colspan="6">
                             <div class="empty-state">
-                                <strong>Nenhum aluno cadastrado</strong>
-                                <span>Cadastre um aluno para iniciar a gestão acadêmica.</span>
+                                <strong>Nenhum aluno encontrado</strong>
+                                <span>Revise a busca ou cadastre um novo aluno.</span>
                             </div>
                         </td>
                     </tr>
@@ -81,12 +129,14 @@
             </table>
         </div>
     </section>
+    {% endif %}
 
+    {% if mostrar_professores %}
     <section class="data-panel">
         <div class="panel-header">
             <div class="panel-title">
                 <h2>Professores cadastrados</h2>
-                <span>{{ total_professores }} professor(es)</span>
+                <span>{{ professores.count }} professor(es)</span>
             </div>
         </div>
 
@@ -99,6 +149,8 @@
                         <th>Curso</th>
                         <th>Disciplina</th>
                         <th>E-mail</th>
+                        <th>Criado em</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -114,23 +166,36 @@
                             </div>
                         </td>
                         <td>{{ professor.matricula|default:professor.user.username }}</td>
-                        <td>{{ professor.curso|default:"-" }}</td>
+                        <td>
+                            {% if professor.curso %}
+                                <span class="mini-tag">{{ professor.curso }}</span>
+                            {% else %}
+                                <span class="cell-subtitle">-</span>
+                            {% endif %}
+                        </td>
                         <td>
                             {% for disciplina in professor.disciplinas.all %}
-                                <span class="cell-title">{{ disciplina.nome }}</span>
+                                <span class="mini-tag">{{ disciplina.nome }}</span>
                                 <span class="cell-subtitle">{{ disciplina.codigo }}</span>
                             {% empty %}
                                 <span class="cell-subtitle">Nenhuma disciplina</span>
                             {% endfor %}
                         </td>
                         <td>{{ professor.user.email|default:"-" }}</td>
+                        <td>{{ professor.user.date_joined|date:"d/m/Y" }}</td>
+                        <td>
+                            <div class="row-actions">
+                                <a class="button" href="{% url 'editar_professor_gestao' professor.id %}">Editar</a>
+                                <a class="button button-danger" href="{% url 'excluir_professor_gestao' professor.id %}">Excluir</a>
+                            </div>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5">
+                        <td colspan="7">
                             <div class="empty-state">
-                                <strong>Nenhum professor cadastrado</strong>
-                                <span>Cadastre um professor para visualizar suas disciplinas aqui.</span>
+                                <strong>Nenhum professor encontrado</strong>
+                                <span>Revise a busca ou cadastre um novo professor.</span>
                             </div>
                         </td>
                     </tr>
@@ -139,5 +204,66 @@
             </table>
         </div>
     </section>
+    {% endif %}
+
+    {% if mostrar_gestores %}
+    <section class="data-panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <h2>Usuários gestão cadastrados</h2>
+                <span>{{ gestores.count }} usuário(s)</span>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Usuário gestão</th>
+                        <th>Login</th>
+                        <th>E-mail</th>
+                        <th>Criado em</th>
+                        <th>Acesso</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gestor in gestores %}
+                    <tr>
+                        <td>
+                            <div class="person-cell">
+                                <span class="avatar">{{ gestor.user.first_name|default:gestor.user.username|slice:":1"|upper }}</span>
+                                <span>
+                                    <span class="cell-title">{{ gestor.user.get_full_name|default:gestor.user.username }}</span>
+                                    <span class="cell-subtitle">ID {{ gestor.id }}</span>
+                                </span>
+                            </div>
+                        </td>
+                        <td>{{ gestor.user.username }}</td>
+                        <td>{{ gestor.user.email|default:"-" }}</td>
+                        <td>{{ gestor.user.date_joined|date:"d/m/Y" }}</td>
+                        <td><span class="status status-ok">Acesso total</span></td>
+                        <td>
+                            <div class="row-actions">
+                                <a class="button" href="{% url 'editar_gestor_gestao' gestor.id %}">Editar</a>
+                                <a class="button button-danger" href="{% url 'excluir_gestor_gestao' gestor.id %}">Excluir</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <strong>Nenhum usuário gestão encontrado</strong>
+                                <span>Revise a busca ou cadastre um usuário gestão.</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
 </div>
 {% endblock %}

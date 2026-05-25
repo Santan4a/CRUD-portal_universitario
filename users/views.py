@@ -1,14 +1,20 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404, render, redirect
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect, render
 
 from alunos.forms import GestaoAlunoForm
-from users.forms import GestaoUsuarioForm
-from users.utils import gerar_email_institucional, gerar_senha_inicial_aleatoria, gerar_usuario_aluno_unico, gerar_usuario_professor_unico
 from alunos.models import Aluno
 from disciplinas.catalogo import disciplinas_por_curso_json
-from disciplinas.models import Disciplina
+from users.forms import GestaoGestorForm, GestaoProfessorForm, GestaoUsuarioForm
+from users.utils import (
+    gerar_email_institucional,
+    gerar_senha_inicial_aleatoria,
+    gerar_usuario_aluno_unico,
+    gerar_usuario_professor_unico,
+)
 
 from .access import get_user_role, has_screen_access, manage_screen_required
 from .models import Profile
@@ -44,13 +50,60 @@ def portal_redirect(request):
 
 @manage_screen_required(Profile.SCREEN_GESTAO)
 def dashboard_gestao(request):
-    alunos = Aluno.objects.prefetch_related('disciplinas').order_by('-id')
-    professores = (
+    alunos_base = (
+        Aluno.objects.select_related('user')
+        .prefetch_related('disciplinas')
+        .order_by('-id')
+    )
+    professores_base = (
         Profile.objects.filter(role=Profile.ROLE_PROFESSOR)
         .select_related('user')
         .prefetch_related('disciplinas')
         .order_by('-id')
     )
+    gestores_base = (
+        Profile.objects.filter(role=Profile.ROLE_GESTAO)
+        .select_related('user')
+        .order_by('-id')
+    )
+
+    query = request.GET.get('q', '').strip()
+    tipo_ativo = request.GET.get('tipo', 'todos')
+    tipos_validos = {'todos', 'alunos', 'professores', 'gestao'}
+    if tipo_ativo not in tipos_validos:
+        tipo_ativo = 'todos'
+
+    alunos = alunos_base
+    professores = professores_base
+    gestores = gestores_base
+
+    if query:
+        alunos = alunos.filter(
+            Q(nome__icontains=query)
+            | Q(matricula__icontains=query)
+            | Q(curso__icontains=query)
+            | Q(user__username__icontains=query)
+            | Q(user__email__icontains=query)
+            | Q(disciplinas__nome__icontains=query)
+            | Q(disciplinas__codigo__icontains=query)
+        ).distinct()
+        professores = professores.filter(
+            Q(user__first_name__icontains=query)
+            | Q(user__last_name__icontains=query)
+            | Q(user__username__icontains=query)
+            | Q(user__email__icontains=query)
+            | Q(matricula__icontains=query)
+            | Q(curso__icontains=query)
+            | Q(disciplinas__nome__icontains=query)
+            | Q(disciplinas__codigo__icontains=query)
+        ).distinct()
+        gestores = gestores.filter(
+            Q(user__first_name__icontains=query)
+            | Q(user__last_name__icontains=query)
+            | Q(user__username__icontains=query)
+            | Q(user__email__icontains=query)
+        ).distinct()
+
     total_cursos = (
         Aluno.objects.exclude(curso='')
         .values('curso')
@@ -59,12 +112,18 @@ def dashboard_gestao(request):
     )
 
     context = {
-        'total_alunos': alunos.count(),
-        'total_professores': professores.count(),
+        'total_alunos': alunos_base.count(),
+        'total_professores': professores_base.count(),
+        'total_gestores': gestores_base.count(),
         'total_cursos': total_cursos,
-        'total_disciplinas': Disciplina.objects.count(),
         'alunos': alunos,
         'professores': professores,
+        'gestores': gestores,
+        'query': query,
+        'tipo_ativo': tipo_ativo,
+        'mostrar_alunos': tipo_ativo in ('todos', 'alunos'),
+        'mostrar_professores': tipo_ativo in ('todos', 'professores'),
+        'mostrar_gestores': tipo_ativo in ('todos', 'gestao'),
     }
 
     return render(request, "gestao/dashboard.html", context)
@@ -89,6 +148,7 @@ def cadastrar_aluno_gestao(request):
     if form.is_valid():
         form.save()
         request.session.pop('senha_inicial_cadastro_usuario', None)
+        messages.success(request, 'Usuário cadastrado com sucesso.')
         return redirect('dashboard_gestao')
 
     return render(
@@ -114,6 +174,7 @@ def editar_aluno_gestao(request, id):
 
     if form.is_valid():
         form.save()
+        messages.success(request, 'Aluno atualizado com sucesso.')
         return redirect('dashboard_gestao')
 
     return render(
@@ -129,6 +190,106 @@ def editar_aluno_gestao(request, id):
     )
 
 
+@manage_screen_required(Profile.SCREEN_GESTAO)
+def editar_professor_gestao(request, id):
+    professor = get_object_or_404(
+        Profile.objects.select_related('user').prefetch_related('disciplinas'),
+        id=id,
+        role=Profile.ROLE_PROFESSOR,
+    )
+    form = GestaoProfessorForm(request.POST or None, instance=professor)
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Professor atualizado com sucesso.')
+        return redirect('dashboard_gestao')
+
+    return render(
+        request,
+        'gestao/editar_professor.html',
+        {
+            'professor': professor,
+            'form': form,
+            'disciplinas_por_curso': disciplinas_por_curso_json(),
+        }
+    )
+
+
+@manage_screen_required(Profile.SCREEN_GESTAO)
+def excluir_professor_gestao(request, id):
+    professor = get_object_or_404(
+        Profile.objects.select_related('user'),
+        id=id,
+        role=Profile.ROLE_PROFESSOR,
+    )
+
+    if request.method == 'POST':
+        professor.user.delete()
+        messages.success(request, 'Professor excluído com sucesso.')
+        return redirect('dashboard_gestao')
+
+    return render(
+        request,
+        'gestao/confirmar_exclusao_professor.html',
+        {'professor': professor},
+    )
+
+
+@manage_screen_required(Profile.SCREEN_GESTAO)
+def editar_gestor_gestao(request, id):
+    gestor = get_object_or_404(
+        Profile.objects.select_related('user'),
+        id=id,
+        role=Profile.ROLE_GESTAO,
+    )
+    form = GestaoGestorForm(request.POST or None, instance=gestor)
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Usuário gestão atualizado com sucesso.')
+        return redirect('dashboard_gestao')
+
+    return render(
+        request,
+        'gestao/editar_gestor.html',
+        {
+            'gestor': gestor,
+            'form': form,
+        }
+    )
+
+
+@manage_screen_required(Profile.SCREEN_GESTAO)
+def excluir_gestor_gestao(request, id):
+    gestor = get_object_or_404(
+        Profile.objects.select_related('user'),
+        id=id,
+        role=Profile.ROLE_GESTAO,
+    )
+
+    if gestor.user_id == request.user.id:
+        messages.error(request, 'Você não pode excluir o próprio usuário gestão.')
+        return redirect('dashboard_gestao')
+
+    outros_gestores = Profile.objects.filter(
+        role=Profile.ROLE_GESTAO,
+    ).exclude(id=gestor.id)
+    if not outros_gestores.exists():
+        messages.error(request, 'Não é possível excluir o último usuário gestão.')
+        return redirect('dashboard_gestao')
+
+    if request.method == 'POST':
+        gestor.user.delete()
+        messages.success(request, 'Usuário gestão excluído com sucesso.')
+        return redirect('dashboard_gestao')
+
+    return render(
+        request,
+        'gestao/confirmar_exclusao_gestor.html',
+        {'gestor': gestor},
+    )
+
+
 def contato(request):
     return render(request, 'contato.html')
 
@@ -140,12 +301,14 @@ def suporte(request):
 def politicas(request):
     return render(request, 'politicas.html')
 
+
 @manage_screen_required(Profile.SCREEN_GESTAO)
 def excluir_aluno_gestao(request, id):
     aluno = get_object_or_404(Aluno, id=id)
 
     if request.method == 'POST':
         aluno.delete()
+        messages.success(request, 'Aluno excluído com sucesso.')
         return redirect('dashboard_gestao')
 
     return render(

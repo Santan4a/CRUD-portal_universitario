@@ -244,6 +244,144 @@ class GestaoUsuarioViewTests(TestCase):
         self.assertContains(response, disciplina.nome)
         self.assertContains(response, disciplina.codigo)
         self.assertContains(response, 'professor.dashboard@portaltech.com')
+        self.assertContains(
+            response,
+            reverse('editar_professor_gestao', args=[professor.id]),
+        )
+        self.assertContains(
+            response,
+            reverse('excluir_professor_gestao', args=[professor.id]),
+        )
+
+    def test_dashboard_exibe_usuarios_gestao_cadastrados(self):
+        gestor_user = User.objects.create_user(
+            username='gestao.dashboard',
+            password='gestao12345',
+            first_name='Gestora',
+            last_name='Dashboard',
+            email='gestao.dashboard@portaltech.com',
+        )
+        Profile.objects.create(
+            user=gestor_user,
+            role=Profile.ROLE_GESTAO,
+        )
+
+        response = self.client.get(reverse('dashboard_gestao'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Usuários gestão cadastrados')
+        self.assertContains(response, 'Gestora Dashboard')
+        self.assertContains(response, 'gestao.dashboard')
+        gestor = Profile.objects.get(user=gestor_user)
+
+        self.assertContains(response, 'gestao.dashboard@portaltech.com')
+        self.assertContains(response, 'Acesso total')
+        self.assertContains(
+            response,
+            reverse('editar_gestor_gestao', args=[gestor.id]),
+        )
+        self.assertContains(
+            response,
+            reverse('excluir_gestor_gestao', args=[gestor.id]),
+        )
+
+    def test_dashboard_busca_usuarios_por_texto(self):
+        Aluno.objects.create(nome='Aluno Busca Unico', matricula='ALUBUSCA001')
+        professor_user = User.objects.create_user(
+            username='professor.busca.unico',
+            password='prof12345',
+            first_name='Professor Busca Unico',
+        )
+        Profile.objects.create(
+            user=professor_user,
+            role=Profile.ROLE_PROFESSOR,
+            matricula='PROFBUSCA001',
+        )
+        gestor_user = User.objects.create_user(
+            username='gestor.busca.unico',
+            password='gestao12345',
+            first_name='Gestor Busca Unico',
+        )
+        Profile.objects.create(user=gestor_user, role=Profile.ROLE_GESTAO)
+
+        response = self.client.get(
+            reverse('dashboard_gestao'),
+            {'q': 'Professor Busca Unico'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Professor Busca Unico')
+        self.assertNotContains(response, 'Aluno Busca Unico')
+        self.assertNotContains(response, 'Gestor Busca Unico')
+
+    def test_dashboard_filtra_por_tipo_de_usuario(self):
+        response = self.client.get(
+            reverse('dashboard_gestao'),
+            {'tipo': 'gestao'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['mostrar_alunos'])
+        self.assertFalse(response.context['mostrar_professores'])
+        self.assertTrue(response.context['mostrar_gestores'])
+        self.assertContains(response, 'Usuários gestão cadastrados')
+
+    def test_gestao_pode_editar_usuario_gestao(self):
+        gestor_user = User.objects.create_user(
+            username='gestor.editar',
+            password='gestao12345',
+            first_name='Gestor Antigo',
+            email='antigo.gestao@portaltech.com',
+        )
+        gestor = Profile.objects.create(user=gestor_user, role=Profile.ROLE_GESTAO)
+
+        response = self.client.post(
+            reverse('editar_gestor_gestao', args=[gestor.id]),
+            {
+                'nome': 'Gestor Editado',
+                'username': 'gestor.editado',
+                'email': 'editado.gestao@portaltech.com',
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse('dashboard_gestao'))
+        gestor_user.refresh_from_db()
+        self.assertEqual(gestor_user.first_name, 'Gestor Editado')
+        self.assertEqual(gestor_user.last_name, '')
+        self.assertEqual(gestor_user.username, 'gestor.editado')
+        self.assertEqual(gestor_user.email, 'editado.gestao@portaltech.com')
+        self.assertContains(response, 'Usuário gestão atualizado com sucesso.')
+
+    def test_gestao_pode_excluir_outro_usuario_gestao(self):
+        gestor_user = User.objects.create_user(
+            username='gestor.excluir',
+            password='gestao12345',
+            first_name='Gestor Excluir',
+        )
+        gestor = Profile.objects.create(user=gestor_user, role=Profile.ROLE_GESTAO)
+
+        response = self.client.post(
+            reverse('excluir_gestor_gestao', args=[gestor.id]),
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse('dashboard_gestao'))
+        self.assertFalse(User.objects.filter(username='gestor.excluir').exists())
+        self.assertFalse(Profile.objects.filter(id=gestor.id).exists())
+        self.assertContains(response, 'Usuário gestão excluído com sucesso.')
+
+    def test_gestao_nao_pode_excluir_proprio_usuario(self):
+        gestor = self.gestao_user.profile
+
+        response = self.client.post(
+            reverse('excluir_gestor_gestao', args=[gestor.id]),
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse('dashboard_gestao'))
+        self.assertTrue(Profile.objects.filter(id=gestor.id).exists())
+        self.assertContains(response, 'Você não pode excluir o próprio usuário gestão.')
 
     def test_cadastro_usuario_regenera_senha_a_cada_abertura(self):
         with patch(
@@ -299,6 +437,69 @@ class GestaoUsuarioViewTests(TestCase):
             set(professor.profile.allowed_screens),
             {Profile.SCREEN_ALUNOS, Profile.SCREEN_NOTAS, Profile.SCREEN_FALTAS},
         )
+
+    def test_gestao_pode_editar_professor(self):
+        curso_antigo, curso_novo = cursos_disponiveis()[:2]
+        disciplina_antiga = Disciplina.objects.create(
+            **disciplinas_do_curso(curso_antigo)[0]
+        )
+        disciplina_nova = disciplinas_do_curso(curso_novo)[0]
+        professor_user = User.objects.create_user(
+            username='professor.editar',
+            password='prof12345',
+            first_name='Professor Antigo',
+            email='antigo@portaltech.com',
+        )
+        professor = Profile.objects.create(
+            user=professor_user,
+            role=Profile.ROLE_PROFESSOR,
+            matricula='PROF20260088',
+            curso=curso_antigo,
+        )
+        professor.disciplinas.add(disciplina_antiga)
+
+        response = self.client.post(
+            reverse('editar_professor_gestao', args=[professor.id]),
+            {
+                'nome': 'Professor Editado',
+                'email': 'editado@portaltech.com',
+                'curso': curso_novo,
+                'disciplina': disciplina_nova['codigo'],
+            },
+        )
+
+        self.assertRedirects(response, reverse('dashboard_gestao'))
+        professor.refresh_from_db()
+        professor.user.refresh_from_db()
+
+        self.assertEqual(professor.user.first_name, 'Professor Editado')
+        self.assertEqual(professor.user.last_name, '')
+        self.assertEqual(professor.user.email, 'antigo@portaltech.com')
+        self.assertEqual(professor.curso, curso_novo)
+        self.assertEqual(
+            set(professor.disciplinas.values_list('codigo', flat=True)),
+            {disciplina_nova['codigo']},
+        )
+
+    def test_gestao_pode_excluir_professor(self):
+        professor_user = User.objects.create_user(
+            username='professor.excluir',
+            password='prof12345',
+            first_name='Professor Excluir',
+        )
+        professor = Profile.objects.create(
+            user=professor_user,
+            role=Profile.ROLE_PROFESSOR,
+            matricula='PROF20260099',
+        )
+
+        response = self.client.post(
+            reverse('excluir_professor_gestao', args=[professor.id]),
+        )
+
+        self.assertRedirects(response, reverse('dashboard_gestao'))
+        self.assertFalse(User.objects.filter(username='professor.excluir').exists())
+        self.assertFalse(Profile.objects.filter(id=professor.id).exists())
 
     def test_telas_selecionadas_limitam_o_acesso(self):
         professor = User.objects.create_user(
