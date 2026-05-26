@@ -4,53 +4,107 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login | Portal Tech</title>
+    <title>Login | Portal Universitário</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+    <link rel="stylesheet" href="{% static 'css/login-novo.css' %}">
 </head>
-<body class="login-page">
-    <main class="login-shell">
-        <section class="login-card" aria-labelledby="login-title">
-            <div class="login-logo-panel">
-                <img src="{% static 'assets/brand/logo.png' %}" alt="Portal Tech">
+<body class="login-page-nova">
+
+    <div class="ln-shell">
+
+        <aside class="ln-left" aria-hidden="true">
+            <div class="ln-grid"></div>
+            <div class="ln-blob ln-blob--1"></div>
+            <div class="ln-blob ln-blob--2"></div>
+            <div class="ln-blob ln-blob--3"></div>
+
+            <div class="ln-left__content">
+                <div class="ln-tag">
+                    <span class="ln-tag__dot"></span>
+                    Portal Universitário
+                </div>
+                <h2 class="ln-headline">Portal<br> universitario<span> Tech.</span></h2>
+                
+                <div class="ln-stats">
+                    <div class="ln-stat">
+                        <strong>4.8k</strong>
+                        <span>Alunos</span>
+                    </div>
+                    <div class="ln-divider"></div>
+                    <div class="ln-stat">
+                        <strong>30</strong>
+                        <span>Cursos</span>
+                    </div>
+                    <div class="ln-divider"></div>
+                    <div class="ln-stat">
+                        <strong>98%</strong>
+                        <span>Satisfação</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="login-heading">
-                <p class="eyebrow">Acesso ao portal</p>
-                <h1 id="login-title">Entrar</h1>
+            <p class="ln-left__footer">© 2025 Portal Universitário</p>
+        </aside>
+
+        <main class="ln-right">
+            <div class="ln-logo">
+                <div class="ln-logo__icon">
+                    <div class="ln-logo__icon">
+    <img src="{% static 'assets/brand/footer-logo.png' %}" alt="Logo">
+</div>
+                </div>
+                <span>PortalTech</span>
             </div>
+
+            <p class="ln-eyebrow">Acesso ao sistema</p>
+            <h1 class="ln-title">Entre na sua conta</h1>
 
             {% if form.non_field_errors %}
-            <div class="alert" role="alert">
+            <div class="ln-alert" role="alert">
                 {{ form.non_field_errors }}
             </div>
             {% endif %}
 
-            <form method="post" class="login-form">
+            <form method="post" class="ln-form">
                 {% csrf_token %}
 
                 {% if next %}
                 <input type="hidden" name="next" value="{{ next }}">
                 {% endif %}
 
-                <div class="form-field">
+                <div class="ln-field">
                     <label for="{{ form.username.id_for_label }}">Usuário</label>
                     {{ form.username }}
                     {% if form.username.errors %}
-                    <div class="field-error">{{ form.username.errors }}</div>
+                    <p class="ln-field__error">{{ form.username.errors.as_text }}</p>
                     {% endif %}
                 </div>
 
-                <div class="form-field">
+                <div class="ln-field">
                     <label for="{{ form.password.id_for_label }}">Senha</label>
                     {{ form.password }}
                     {% if form.password.errors %}
-                    <div class="field-error">{{ form.password.errors }}</div>
+                    <p class="ln-field__error">{{ form.password.errors.as_text }}</p>
                     {% endif %}
                 </div>
 
-                <button type="submit">Acessar portal</button>
+                <button type="submit" class="ln-btn">
+                    Acessar portal
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                    </svg>
+                </button>
             </form>
-        </section>
-    </main>
+
+            <p class="ln-footer-link">
+                Esqueceu a senha ? <a href="#">Recuperar senha</a>
+            </p>
+        </main>
+
+    </div>
+
 </body>
 </html>
