@@ -87,4 +87,8 @@ urlpatterns = [
     
     ),
 
+    path(
+        'cronograma/',
+        include('cronograma.urls')
+    ),
 ]

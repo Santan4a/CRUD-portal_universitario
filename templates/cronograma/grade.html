@@ -1,0 +1,31 @@
+<h1>Grade de Horários</h1>
+
+<table border="1" cellpadding="10">
+
+    <tr>
+        <th>Disciplina</th>
+        <th>Dia</th>
+        <th>Início</th>
+        <th>Fim</th>
+        <th>Sala</th>
+    </tr>
+
+    {% for aula in cronogramas %}
+
+    <tr>
+
+        <td>{{ aula.disciplina.nome }}</td>
+
+        <td>{{ aula.get_dia_semana_display }}</td>
+
+        <td>{{ aula.horario_inicio }}</td>
+
+        <td>{{ aula.horario_fim }}</td>
+
+        <td>{{ aula.sala }}</td>
+
+    </tr>
+
+    {% endfor %}
+
+</table>

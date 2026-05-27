@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'disciplinas',
     'notas', 
     'faltas',
+    'cronograma',
 ]
 
 MIDDLEWARE = [
