@@ -17,6 +17,24 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def load_env_file(path):
+    if not path.exists():
+        return
+
+    for raw_line in path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+
+        key, value = line.split('=', 1)
+        key = key.strip()
+        value = value.strip().strip('\"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+load_env_file(BASE_DIR / '.env')
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -150,6 +168,33 @@ STATICFILES_DIRS = [
 LOGIN_URL = 'home'
 LOGIN_REDIRECT_URL = '/portal/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+EMAIL_HOST = os.environ.get('DJANGO_EMAIL_HOST', 'localhost')
+EMAIL_HOST_USER = os.environ.get('DJANGO_EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('DJANGO_EMAIL_HOST_PASSWORD', '')
+SMTP_EMAIL_CONFIGURED = all([
+    EMAIL_HOST,
+    EMAIL_HOST_USER,
+    EMAIL_HOST_PASSWORD,
+])
+DEFAULT_EMAIL_BACKEND = (
+    'django.core.mail.backends.smtp.EmailBackend'
+    if PRODUCTION or SMTP_EMAIL_CONFIGURED
+    else 'django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_BACKEND = os.environ.get('DJANGO_EMAIL_BACKEND', DEFAULT_EMAIL_BACKEND)
+EMAIL_PORT = int(os.environ.get(
+    'DJANGO_EMAIL_PORT',
+    587 if EMAIL_BACKEND.endswith('smtp.EmailBackend') else 25,
+))
+EMAIL_USE_TLS = env_bool(
+    'DJANGO_EMAIL_USE_TLS',
+    EMAIL_BACKEND.endswith('smtp.EmailBackend'),
+)
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DJANGO_DEFAULT_FROM_EMAIL',
+    EMAIL_HOST_USER or 'Portal Tech <no-reply@portaltech.com>',
+)
 
 SECURE_SSL_REDIRECT = env_bool('DJANGO_SECURE_SSL_REDIRECT', PRODUCTION)
 SESSION_COOKIE_SECURE = env_bool('DJANGO_SESSION_COOKIE_SECURE', PRODUCTION)

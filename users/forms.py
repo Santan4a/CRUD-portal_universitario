@@ -40,6 +40,11 @@ class GestaoUsuarioForm(forms.Form):
         required=False,
         widget=forms.EmailInput(attrs={'placeholder': 'email@exemplo.com'}),
     )
+    email_pessoal_professor = forms.EmailField(
+        label='E-mail pessoal do professor',
+        required=False,
+        widget=forms.EmailInput(attrs={'placeholder': 'professor@email.com'}),
+    )
     password = forms.CharField(
         label='Senha inicial',
         min_length=6,
@@ -95,14 +100,33 @@ class GestaoUsuarioForm(forms.Form):
         role = cleaned_data.get('role')
         curso = cleaned_data.get('curso')
         disciplina = cleaned_data.get('disciplina')
+        email = (cleaned_data.get('email') or '').strip()
+        email_pessoal_professor = (
+            cleaned_data.get('email_pessoal_professor') or ''
+        ).strip()
+        cleaned_data['email'] = email
+        cleaned_data['email_pessoal_professor'] = email_pessoal_professor
         cleaned_data['password'] = self.initial_password
 
         if role == Profile.ROLE_ALUNO:
             cleaned_data['username'] = gerar_usuario_aluno_unico(User, Profile, Aluno)
+            if not email:
+                self.add_error(
+                    'email',
+                    'Informe o e-mail do aluno para enviar o acesso.',
+                )
         elif role == Profile.ROLE_PROFESSOR:
             cleaned_data['username'] = gerar_usuario_professor_unico(User, Profile)
             cleaned_data['email'] = gerar_email_institucional(cleaned_data['username'])
-        elif not cleaned_data.get('username'):
+            if not email_pessoal_professor:
+                self.add_error(
+                    'email_pessoal_professor',
+                    'Informe o e-mail pessoal para enviar o acesso institucional.',
+                )
+        else:
+            cleaned_data['email_pessoal_professor'] = ''
+
+        if role not in (Profile.ROLE_ALUNO, Profile.ROLE_PROFESSOR) and not cleaned_data.get('username'):
             self.add_error('username', 'Informe o usuário de acesso.')
         elif User.objects.filter(username=cleaned_data['username']).exists():
             self.add_error('username', 'Já existe um usuário com esse login.')

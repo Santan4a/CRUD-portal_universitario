@@ -830,6 +830,12 @@ textarea:focus {
     color: var(--danger);
 }
 
+.message-warning {
+    border-color: rgba(173, 113, 0, 0.24);
+    background: #fff6db;
+    color: #8a5a00;
+}
+
 .confirm-panel {
     display: grid;
     gap: 18px;
