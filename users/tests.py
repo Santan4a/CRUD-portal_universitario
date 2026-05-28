@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
+from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -24,6 +25,7 @@ class GestaoUsuarioFormTests(TestCase):
             'role': Profile.ROLE_PROFESSOR,
             'nome': 'Professor Silva',
             'email': 'professor@example.com',
+            'email_pessoal_professor': 'professor.pessoal@example.com',
             'password': 'senha-manual',
             'curso': curso,
             'disciplina': disciplina['codigo'],
@@ -86,6 +88,18 @@ class GestaoUsuarioFormTests(TestCase):
             codigos_esperados,
         )
 
+    def test_aluno_exige_email_para_envio_de_credenciais(self):
+        curso = cursos_disponiveis()[0]
+        form = GestaoUsuarioForm(data={
+            'role': Profile.ROLE_ALUNO,
+            'nome': 'Ana Silva',
+            'password': 'aluno12345',
+            'curso': curso,
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+
     def test_telas_vem_predefinidas_por_tipo_de_usuario(self):
         self.assertEqual(
             set(get_default_screens_for_role(Profile.ROLE_PROFESSOR)),
@@ -103,6 +117,7 @@ class GestaoUsuarioFormTests(TestCase):
             'role': Profile.ROLE_ALUNO,
             'nome': 'Ana Silva',
             'username': 'aluno.manual',
+            'email': 'ana@example.com',
             'password': 'aluno12345',
             'curso': curso,
             'allowed_screens': [Profile.SCREEN_GESTAO],
@@ -111,6 +126,7 @@ class GestaoUsuarioFormTests(TestCase):
             'role': Profile.ROLE_PROFESSOR,
             'nome': 'Professor Silva',
             'username': 'professor.sem.tela',
+            'email_pessoal_professor': 'professor.pessoal@example.com',
             'password': 'prof12345',
             'curso': curso,
             'disciplina': disciplina['codigo'],
@@ -144,11 +160,26 @@ class GestaoUsuarioFormTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('curso', form.errors)
 
+    def test_professor_precisa_informar_email_pessoal(self):
+        curso = cursos_disponiveis()[0]
+        disciplina = disciplinas_do_curso(curso)[0]
+        form = GestaoUsuarioForm(data={
+            'role': Profile.ROLE_PROFESSOR,
+            'nome': 'Professor Silva',
+            'password': 'prof12345',
+            'curso': curso,
+            'disciplina': disciplina['codigo'],
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('email_pessoal_professor', form.errors)
+
     def test_professor_precisa_informar_disciplina(self):
         curso = cursos_disponiveis()[0]
         form = GestaoUsuarioForm(data={
             'role': Profile.ROLE_PROFESSOR,
             'nome': 'Professor Silva',
+            'email_pessoal_professor': 'professor.pessoal@example.com',
             'password': 'prof12345',
             'curso': curso,
         })
@@ -193,7 +224,10 @@ class GestaoUsuarioFormTests(TestCase):
         )
 
 
-@override_settings(SECURE_SSL_REDIRECT=False)
+@override_settings(
+    SECURE_SSL_REDIRECT=False,
+    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+)
 class GestaoUsuarioViewTests(TestCase):
     def setUp(self):
         self.gestao_user = User.objects.create_user(
@@ -400,6 +434,99 @@ class GestaoUsuarioViewTests(TestCase):
             'SenhaSegundaB',
         )
 
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_cadastro_aluno_envia_credenciais_por_email(self):
+        get_response = self.client.get(reverse('cadastrar_usuario_gestao'))
+        senha_inicial = get_response.context['senha_inicial_aleatoria']
+        curso = cursos_disponiveis()[0]
+
+        response = self.client.post(
+            reverse('cadastrar_usuario_gestao'),
+            {
+                'role': Profile.ROLE_ALUNO,
+                'nome': 'Ana Email',
+                'email': 'ana.email@example.com',
+                'password': 'senha-manual',
+                'curso': curso,
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse('dashboard_gestao'))
+        aluno = User.objects.get(first_name='Ana Email')
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+
+        self.assertEqual(email.to, ['ana.email@example.com'])
+        self.assertIn('Seu acesso ao Portal Universitario', email.subject)
+        self.assertIn(aluno.username, email.body)
+        self.assertIn(senha_inicial, email.body)
+        self.assertIn('/login/', email.body)
+        self.assertNotIn('E-mail institucional', email.body)
+        self.assertContains(
+            response,
+            'Credenciais enviadas para o e-mail do usuário.',
+        )
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend')
+    def test_cadastro_aluno_avisa_quando_email_usa_console(self):
+        self.client.get(reverse('cadastrar_usuario_gestao'))
+        curso = cursos_disponiveis()[0]
+
+        response = self.client.post(
+            reverse('cadastrar_usuario_gestao'),
+            {
+                'role': Profile.ROLE_ALUNO,
+                'nome': 'Ana Console',
+                'email': 'ana.console@example.com',
+                'password': 'senha-manual',
+                'curso': curso,
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse('dashboard_gestao'))
+        self.assertContains(
+            response,
+            'As credenciais foram exibidas no terminal do servidor.',
+        )
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_cadastro_professor_envia_email_institucional_e_senha(self):
+        get_response = self.client.get(reverse('cadastrar_usuario_gestao'))
+        senha_inicial = get_response.context['senha_inicial_aleatoria']
+        curso = cursos_disponiveis()[0]
+        disciplina = disciplinas_do_curso(curso)[0]
+
+        response = self.client.post(
+            reverse('cadastrar_usuario_gestao'),
+            {
+                'role': Profile.ROLE_PROFESSOR,
+                'nome': 'Professor Email',
+                'email': 'manual@example.com',
+                'email_pessoal_professor': 'professor.pessoal@example.com',
+                'password': 'senha-manual',
+                'curso': curso,
+                'disciplina': disciplina['codigo'],
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse('dashboard_gestao'))
+        professor = User.objects.get(first_name='Professor Email')
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+
+        self.assertEqual(email.to, ['professor.pessoal@example.com'])
+        self.assertEqual(professor.email, gerar_email_institucional(professor.username))
+        self.assertIn(professor.username, email.body)
+        self.assertIn(professor.email, email.body)
+        self.assertIn(senha_inicial, email.body)
+        self.assertContains(
+            response,
+            'Credenciais enviadas para o e-mail do usuário.',
+        )
+
     def test_gestao_pode_cadastrar_professor(self):
         get_response = self.client.get(reverse('cadastrar_usuario_gestao'))
         senha_inicial = get_response.context['senha_inicial_aleatoria']
@@ -413,6 +540,7 @@ class GestaoUsuarioViewTests(TestCase):
                 'nome': 'Professor Souza',
                 'username': 'professor.souza',
                 'email': 'souza@example.com',
+                'email_pessoal_professor': 'souza.pessoal@example.com',
                 'password': 'senha-manual',
                 'curso': curso,
                 'disciplina': disciplina['codigo'],

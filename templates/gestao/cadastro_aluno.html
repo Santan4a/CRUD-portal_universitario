@@ -54,6 +54,7 @@
     const nome = document.getElementById("id_nome");
     const usuario = document.getElementById("id_username");
     const email = document.getElementById("id_email");
+    const emailPessoalProfessor = document.getElementById("id_email_pessoal_professor");
     const emailInstitucionalProfessor = `{{ email_institucional_professor|default:""|escapejs }}`;
     const proximosUsuarios = {
         aluno: `{{ proximo_usuario_aluno|default:""|escapejs }}`,
@@ -67,6 +68,7 @@
     const preview = document.querySelector(".course-preview");
     const cursoCampo = document.querySelector(`[data-field-name="curso"]`) || (curso ? curso.closest(".form-field") : null);
     const disciplinaCampo = document.querySelector(`[data-field-name="disciplina"]`) || (disciplina ? disciplina.closest(".form-field") : null);
+    const emailPessoalProfessorCampo = document.querySelector(`[data-field-name="email_pessoal_professor"]`) || (emailPessoalProfessor ? emailPessoalProfessor.closest(".form-field") : null);
 
     if (!curso || !dados || !lista || !contador) {
         return;
@@ -202,6 +204,22 @@
         usuario.dataset.usuarioAutomaticoGerado = "true";
     }
 
+    function atualizarEmailPessoalProfessorPorTipo() {
+        if (!emailPessoalProfessor) {
+            return;
+        }
+
+        const deveExibirEmailPessoal = obterTipoUsuario() === "professor";
+
+        alternarVisibilidade(emailPessoalProfessorCampo, deveExibirEmailPessoal);
+        emailPessoalProfessor.disabled = !deveExibirEmailPessoal;
+        emailPessoalProfessor.required = deveExibirEmailPessoal;
+
+        if (!deveExibirEmailPessoal) {
+            emailPessoalProfessor.value = "";
+        }
+    }
+
     function atualizarDisciplinaPorTipo() {
         if (!disciplina) {
             return;
@@ -235,6 +253,7 @@
         renderizarDisciplinas();
         atualizarOpcoesDisciplina();
         atualizarDisciplinaPorTipo();
+        atualizarEmailPessoalProfessorPorTipo();
     }
 
     curso.addEventListener("change", atualizarCursoPorTipo);
@@ -257,6 +276,7 @@
     atualizarUsuarioAutomatico();
     atualizarEmailInstitucionalProfessor();
     atualizarCursoPorTipo();
+    atualizarEmailPessoalProfessorPorTipo();
 }());
 </script>
 {% endblock %}

@@ -26,9 +26,14 @@ def lista_alunos(request):
 
 
 @login_required
-def dashboard_aluno(request):
+def dashboard_aluno(request, id=None):
 
-    aluno = get_object_or_404(Aluno, user=request.user)
+    if id is not None and can_manage_screen(request.user, Profile.SCREEN_ALUNOS):
+        aluno = get_object_or_404(Aluno, id=id)
+    elif is_aluno(request.user):
+        aluno = get_object_or_404(Aluno, user=request.user)
+    else:
+        raise PermissionDenied
 
     notas = Nota.objects.filter(aluno=aluno)
     faltas = Falta.objects.filter(aluno=aluno)

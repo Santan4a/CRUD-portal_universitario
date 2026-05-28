@@ -1,3 +1,6 @@
+import logging
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -8,6 +11,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from alunos.forms import GestaoAlunoForm
 from alunos.models import Aluno
 from disciplinas.catalogo import disciplinas_por_curso_json
+from users.emails import (
+    enviar_credenciais_acesso_aluno,
+    enviar_credenciais_acesso_professor,
+)
 from users.forms import GestaoGestorForm, GestaoProfessorForm, GestaoUsuarioForm
 from users.utils import (
     gerar_email_institucional,
@@ -18,6 +25,9 @@ from users.utils import (
 
 from .access import get_user_role, has_screen_access, manage_screen_required
 from .models import Profile
+
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -146,9 +156,51 @@ def cadastrar_aluno_gestao(request):
     proximo_usuario_professor = gerar_usuario_professor_unico(User, Profile)
 
     if form.is_valid():
-        form.save()
+        user = form.save()
         request.session.pop('senha_inicial_cadastro_usuario', None)
-        messages.success(request, 'Usuário cadastrado com sucesso.')
+
+        role = form.cleaned_data['role']
+        email_sender_by_role = {
+            Profile.ROLE_ALUNO: enviar_credenciais_acesso_aluno,
+            Profile.ROLE_PROFESSOR: enviar_credenciais_acesso_professor,
+        }
+        email_sender = email_sender_by_role.get(role)
+
+        if email_sender:
+            destinatario = None
+            if role == Profile.ROLE_PROFESSOR:
+                destinatario = form.cleaned_data.get('email_pessoal_professor')
+
+            try:
+                email_sender(
+                    user,
+                    senha_inicial,
+                    request,
+                    destinatario=destinatario,
+                )
+            except Exception:
+                logger.exception(
+                    'Falha ao enviar credenciais do usuário %s por e-mail.',
+                    user.username,
+                )
+                messages.warning(
+                    request,
+                    'Usuário cadastrado, mas não foi possível enviar o e-mail de acesso.',
+                )
+            else:
+                if settings.EMAIL_BACKEND.endswith('console.EmailBackend'):
+                    messages.warning(
+                        request,
+                        'Usuário cadastrado com sucesso. As credenciais foram exibidas no terminal do servidor.',
+                    )
+                else:
+                    messages.success(
+                        request,
+                        'Usuário cadastrado com sucesso. Credenciais enviadas para o e-mail do usuário.',
+                    )
+        else:
+            messages.success(request, 'Usuário cadastrado com sucesso.')
+
         return redirect('dashboard_gestao')
 
     return render(
