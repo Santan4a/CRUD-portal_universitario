@@ -28,7 +28,19 @@
                 <span>{{ notas|length }} nota(s)</span>
             </div>
             {% if can_manage %}
-            <a class="button button-primary" href="{% url 'criar_nota' %}">Nova Nota</a>
+                <div class="row-actions">
+
+                    <a class="button button-primary"
+                    href="{% url 'criar_nota' %}">
+                        Nova Nota
+                    </a>
+
+                    <a class="button button-success"
+                    href="{% url 'exportar_notas' %}">
+                        Exportar Notas
+                    </a>
+
+                </div>
             {% endif %}
         </div>
 

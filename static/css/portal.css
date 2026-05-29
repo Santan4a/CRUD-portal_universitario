@@ -1,3 +1,59 @@
+.select-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    
+}
+
+.modern-select {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 1px solid #cbd5e1;
+    background-color: #ffffff;
+    font-size: 15px;
+    font-weight: 500;
+    color: #0f172a;
+    outline: none;
+    transition: 0.3s ease;
+    appearance: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    margin-left: 20px;
+}
+
+.modern-select:hover {
+    border-color: #2563eb;
+}
+
+.modern-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+}
+
+.select-wrapper::after {
+    content: "⌄";
+    position: absolute;
+    top: 50%;
+    right: 18px;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #64748b;
+    pointer-events: none;
+}
+
+.form-group label {
+   font-family: Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-left: 20px;
+}
+
+.button.button-primary[type="submit"] {
+    margin-left: 20px;
+}
+
 :root {
     --bg: #f4f7fb;
     --bg-strong: #e8f1ff;
