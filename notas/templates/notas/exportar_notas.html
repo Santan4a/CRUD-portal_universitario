@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block page_title %}
+Exportar Notas | Portal Universitário
+{% endblock %}
+
+{% block eyebrow %}
+Relatórios
+{% endblock %}
+
+{% block title %}
+Exportar Notas
+{% endblock %}
+
+{% block content %}
+
+<div class="content-stack">
+
+    <section class="data-panel">
+
+        <div class="panel-header">
+
+            <div class="panel-title">
+                <h2>Exportação de Notas</h2>
+                <span>Selecione uma disciplina</span>
+            </div>
+
+        </div>
+
+        <form method="GET">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+
+                    <label>Disciplina</label>
+
+                    <div class="select-wrapper">
+
+                        <select name="disciplina" class="modern-select">
+
+                            <option value="">
+                                 Selecione uma disciplina
+                            </option>
+
+                            {% for disciplina in disciplinas %}
+
+                            <option value="{{ disciplina.id }}">
+                                {{ disciplina.nome }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <br>
+
+            <button type="submit"
+                    class="button button-primary">
+
+                Buscar Notas
+
+            </button>
+
+        </form>
+
+    </section>
+
+    {% if notas %}
+
+    <section class="data-panel">
+
+        <div class="panel-header">
+
+            <div class="panel-title">
+                <h2>Resultados</h2>
+                <span>{{ notas|length }} registro(s)</span>
+            </div>
+
+            <div class="row-actions">
+
+                <a class="button button-danger"
+                   href="{% url 'exportar_pdf' %}?disciplina={{ request.GET.disciplina }}">
+
+                    Exportar PDF
+
+                </a>
+
+                <a class="button button-success"
+                   href="{% url 'exportar_excel' %}?disciplina={{ request.GET.disciplina }}">
+
+                    Exportar Excel
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Aluno</th>
+                        <th>Disciplina</th>
+                        <th>Nota 1</th>
+                        <th>Nota 2</th>
+                        <th>Média</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for nota in notas %}
+
+                    <tr>
+
+                        <td>{{ nota.aluno.nome }}</td>
+
+                        <td>{{ nota.disciplina.nome }}</td>
+
+                        <td>{{ nota.nota1 }}</td>
+
+                        <td>{{ nota.nota2 }}</td>
+
+                        <td>{{ nota.media }}</td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
