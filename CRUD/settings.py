@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import parse_qsl, unquote, urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,6 +41,13 @@ load_env_file(BASE_DIR / '.env')
 
 def env_bool(name, default=False):
     return os.environ.get(name, str(default)).lower() in ('1', 'true', 'yes', 'on')
+
+
+def env_int(name, default):
+    value = os.environ.get(name)
+    if value in (None, ''):
+        return default
+    return int(value)
 
 
 PRODUCTION = env_bool('DJANGO_PRODUCTION', False)
@@ -117,12 +125,117 @@ WSGI_APPLICATION = 'CRUD.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+
+def database_config_from_url(database_url, *, require_ssl=False, supabase=False):
+    parsed = urlparse(database_url)
+    if parsed.scheme not in ('postgres', 'postgresql'):
+        raise RuntimeError('A URL do banco deve começar com postgres:// ou postgresql://.')
+
+    options = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    if require_ssl:
+        options.setdefault('sslmode', 'require')
+
+    config = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': unquote(parsed.path.lstrip('/')),
+        'USER': unquote(parsed.username or ''),
+        'PASSWORD': unquote(parsed.password or ''),
+        'HOST': parsed.hostname or '',
+        'PORT': str(parsed.port or ''),
     }
-}
+
+    if options:
+        config['OPTIONS'] = options
+
+    missing = [
+        key
+        for key in ('NAME', 'USER', 'PASSWORD', 'HOST')
+        if not config.get(key)
+    ]
+    if missing:
+        raise RuntimeError(
+            'A URL do banco esta incompleta. Campos ausentes: '
+            + ', '.join(missing)
+            + '.'
+        )
+
+    return apply_postgres_runtime_options(config, supabase=supabase)
+
+
+def supabase_database_config_from_env():
+    config = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('SUPABASE_DB_NAME', 'postgres'),
+        'USER': os.environ.get('SUPABASE_DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('SUPABASE_DB_PASSWORD', ''),
+        'HOST': os.environ.get('SUPABASE_DB_HOST', ''),
+        'PORT': os.environ.get('SUPABASE_DB_PORT', '5432'),
+        'OPTIONS': {
+            'sslmode': os.environ.get('SUPABASE_DB_SSLMODE', 'require'),
+        },
+    }
+
+    missing = [
+        key
+        for key in ('PASSWORD', 'HOST')
+        if not config.get(key)
+    ]
+    if missing:
+        raise RuntimeError(
+            'Configuracao do Supabase incompleta. Defina: '
+            + ', '.join(f'SUPABASE_DB_{key}' for key in missing)
+            + '.'
+        )
+
+    return apply_postgres_runtime_options(config, supabase=True)
+
+
+def apply_postgres_runtime_options(config, *, supabase=False):
+    if supabase:
+        config['CONN_MAX_AGE'] = env_int('SUPABASE_DB_CONN_MAX_AGE', 60)
+        config['CONN_HEALTH_CHECKS'] = env_bool('SUPABASE_DB_CONN_HEALTH_CHECKS', True)
+
+        if env_bool('SUPABASE_DB_DISABLE_SERVER_SIDE_CURSORS', False):
+            config['DISABLE_SERVER_SIDE_CURSORS'] = True
+    elif 'DJANGO_DB_CONN_MAX_AGE' in os.environ:
+        config['CONN_MAX_AGE'] = env_int('DJANGO_DB_CONN_MAX_AGE', 0)
+
+    return config
+
+
+SUPABASE_DATABASE_URL = os.environ.get('SUPABASE_DATABASE_URL')
+DATABASE_URL = os.environ.get('DATABASE_URL')
+SUPABASE_DB_ENV_VARS = (
+    'SUPABASE_DB_HOST',
+    'SUPABASE_DB_PASSWORD',
+    'SUPABASE_DB_USER',
+    'SUPABASE_DB_NAME',
+    'SUPABASE_DB_PORT',
+)
+
+if SUPABASE_DATABASE_URL:
+    DATABASES = {
+        'default': database_config_from_url(
+            SUPABASE_DATABASE_URL,
+            require_ssl=True,
+            supabase=True,
+        ),
+    }
+elif DATABASE_URL:
+    DATABASES = {
+        'default': database_config_from_url(DATABASE_URL),
+    }
+elif env_bool('USE_SUPABASE', False) or any(os.environ.get(name) for name in SUPABASE_DB_ENV_VARS):
+    DATABASES = {
+        'default': supabase_database_config_from_env(),
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation

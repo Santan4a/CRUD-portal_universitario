@@ -15,7 +15,7 @@ Projeto desenvolvido em **Django** para gerenciamento acadêmico universitário,
 
 - Python 3.12+
 - Django
-- SQLite (desenvolvimento local)
+- SQLite (desenvolvimento local) / PostgreSQL Supabase
 - HTML / CSS
 - Shell Script (`.sh`)
 - Virtual Environment (`venv`)
@@ -106,6 +106,46 @@ bash setup.sh
 ```bash
 bash run.sh
 ```
+
+---
+
+# Banco de dados com Supabase
+
+O projeto usa SQLite automaticamente quando nenhuma variável de banco remoto está definida. Para usar o Supabase, crie um arquivo `.env` na raiz do projeto e informe a conexão PostgreSQL do seu projeto Supabase.
+
+## Opção recomendada: URL do Supabase
+
+No painel do Supabase, abra o projeto, clique em **Connect** e copie a connection string do **Session Pooler** ou da conexão direta. Em seguida, configure:
+
+```env
+SUPABASE_DATABASE_URL=postgres://postgres.PROJECT_REF:SENHA@aws-0-REGIAO.pooler.supabase.com:5432/postgres
+```
+
+Quando usar `DATABASE_URL` em vez de `SUPABASE_DATABASE_URL`, inclua SSL explicitamente:
+
+```env
+DATABASE_URL=postgres://postgres.PROJECT_REF:SENHA@aws-0-REGIAO.pooler.supabase.com:5432/postgres?sslmode=require
+```
+
+## Alternativa: campos separados
+
+```env
+USE_SUPABASE=True
+SUPABASE_DB_HOST=aws-0-REGIAO.pooler.supabase.com
+SUPABASE_DB_PORT=5432
+SUPABASE_DB_NAME=postgres
+SUPABASE_DB_USER=postgres.PROJECT_REF
+SUPABASE_DB_PASSWORD=sua-senha-do-banco
+SUPABASE_DB_SSLMODE=require
+```
+
+Depois de configurar o `.env`, rode as migrations no Supabase:
+
+```bash
+python manage.py migrate
+```
+
+As migrations criam as tabelas e os usuários de teste no banco remoto. O arquivo `.env` já fica ignorado pelo Git; não versionar a senha do banco é parte importante da brincadeira séria aqui.
 
 ---
 
