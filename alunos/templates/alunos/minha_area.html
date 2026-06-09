@@ -74,9 +74,17 @@
 
     <section class="data-panel">
         <div class="panel-header">
-            <h2>Notas</h2>
-            <span>{{ notas|length }} registro(s)</span>
-        </div>
+    <h2>Notas</h2>
+
+    <div style="display:flex; gap:10px; align-items:center;">
+        <span>{{ notas|length }} registro(s)</span>
+
+        <a href="{% url 'exportar_notas_aluno' %}"
+           class="button button-primary">
+            Exportar PDF
+        </a>
+    </div>
+</div>
 
         <div class="table-wrap">
             <table>

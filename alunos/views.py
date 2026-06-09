@@ -15,6 +15,22 @@ from cronograma.models import Cronograma
 from users.access import can_manage_screen, is_aluno, is_professor, manage_screen_required
 from users.models import Profile
 
+from django.http import HttpResponse
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+
+from django.conf import settings
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import Table, TableStyle
+from reportlab.lib import colors
+
+import os
+
+from django.conf import settings
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
 @manage_screen_required(Profile.SCREEN_ALUNOS)
 def lista_alunos(request):
@@ -189,3 +205,221 @@ def tutor_ia(request):
 
     except Exception:
         return JsonResponse({'resposta': 'Tutor IA temporariamente indisponível.'})
+    
+
+@login_required
+def exportar_notas_aluno(request):
+
+    if not is_aluno(request.user):
+        raise PermissionDenied
+
+    aluno = get_object_or_404(
+        Aluno,
+        user=request.user
+    )
+
+    notas = Nota.objects.filter(
+        aluno=aluno
+    ).select_related(
+        'aluno',
+        'disciplina'
+    )
+
+    response = HttpResponse(
+        content_type='application/pdf'
+    )
+
+    response['Content-Disposition'] = (
+        f'attachment; filename="boletim_{aluno.nome}.pdf"'
+    )
+
+    pdf = canvas.Canvas(
+        response,
+        pagesize=letter
+    )
+
+    largura, altura = letter
+
+    # LOGO
+    logo_path = os.path.join(
+        settings.BASE_DIR,
+        'static',
+        'assets',
+        'brand',
+        'logo_pdf.png'
+    )
+
+    if os.path.exists(logo_path):
+        pdf.drawImage(
+            logo_path,
+            40,
+            altura - 110,
+            width=70,
+            height=70,
+            preserveAspectRatio=True,
+            mask='auto'
+        )
+    try:
+        pdf.drawImage(
+            logo_path,
+            40,
+            altura - 110,
+            width=70,
+            height=70,
+            preserveAspectRatio=True,
+            mask='auto'
+        )
+    except Exception:
+        pass
+
+    # TÍTULO
+    pdf.setFont(
+        "Helvetica-Bold",
+        22
+    )
+
+    pdf.drawString(
+        130,
+        altura - 60,
+        "PORTAL TECH"
+    )
+
+    # SUBTÍTULO
+    pdf.setFont(
+        "Helvetica",
+        12
+    )
+
+    pdf.drawString(
+        130,
+        altura - 85,
+        f"Boletim Acadêmico - {aluno.nome}"
+    )
+
+    # LINHA
+    pdf.setStrokeColor(
+        colors.HexColor("#0F172A")
+    )
+
+    pdf.setLineWidth(2)
+
+    pdf.line(
+        40,
+        altura - 125,
+        largura - 40,
+        altura - 125
+    )
+
+    # TABELA
+    dados = [
+        [
+            'Disciplina',
+            'N1',
+            'N2',
+            'Média',
+            'Situação'
+        ]
+    ]
+
+    for nota in notas:
+
+        media = round(
+            nota.media(),
+            1
+        )
+
+        situacao = (
+            'Aprovado'
+            if media >= 7
+            else 'Revisar'
+        )
+
+        dados.append([
+            nota.disciplina.nome,
+            nota.nota1,
+            nota.nota2,
+            media,
+            situacao
+        ])
+
+    tabela = Table(
+        dados,
+        colWidths=[220, 60, 60, 70, 100]
+    )
+
+    tabela.setStyle(TableStyle([
+
+        ('BACKGROUND',
+         (0, 0),
+         (-1, 0),
+         colors.HexColor("#0F172A")),
+
+        ('TEXTCOLOR',
+         (0, 0),
+         (-1, 0),
+         colors.white),
+
+        ('FONTNAME',
+         (0, 0),
+         (-1, 0),
+         'Helvetica-Bold'),
+
+        ('FONTSIZE',
+         (0, 0),
+         (-1, 0),
+         11),
+
+        ('BOTTOMPADDING',
+         (0, 0),
+         (-1, 0),
+         12),
+
+        ('BACKGROUND',
+         (0, 1),
+         (-1, -1),
+         colors.whitesmoke),
+
+        ('GRID',
+         (0, 0),
+         (-1, -1),
+         1,
+         colors.gray),
+
+        ('ALIGN',
+         (1, 1),
+         (-1, -1),
+         'CENTER'),
+
+        ('VALIGN',
+         (0, 0),
+         (-1, -1),
+         'MIDDLE'),
+    ]))
+
+    tabela.wrapOn(
+        pdf,
+        largura,
+        altura
+    )
+
+    tabela.drawOn(
+        pdf,
+        40,
+        altura - 350
+    )
+
+    # RODAPÉ
+    pdf.setFont(
+        "Helvetica-Oblique",
+        9
+    )
+
+    pdf.drawString(
+        40,
+        30,
+        "Portal TECH - Sistema Acadêmico"
+    )
+
+    pdf.save()
+
+    return response
