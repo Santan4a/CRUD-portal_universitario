@@ -3,6 +3,13 @@ from . import views
 
 urlpatterns = [
     path('minha-area/', views.minha_area, name='minha_area'),
+
+    path(
+        'minha-area/exportar-notas/',
+        views.exportar_notas_aluno,
+        name='exportar_notas_aluno'
+    ),
+
     path('', views.lista_alunos, name='lista_alunos'),
 
     path('dashboard/<int:id>/', views.dashboard_aluno, name='dashboard_aluno'),
