@@ -1,9 +1,11 @@
 from datetime import date, time
+from io import BytesIO
 
 from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from openpyxl import load_workbook
 
 from cronograma.models import Cronograma
 from disciplinas.catalogo import cursos_disponiveis, disciplinas_do_curso
@@ -18,6 +20,18 @@ from .models import Aluno
 class AlunoUrlTests(SimpleTestCase):
     def test_aluno_crud_urls_are_registered(self):
         self.assertEqual(reverse('minha_area'), '/alunos/minha-area/')
+        self.assertEqual(
+            reverse('exportar_notas_aluno'),
+            '/alunos/minha-area/exportar-notas/'
+        )
+        self.assertEqual(
+            reverse('exportar_notas_aluno_pdf'),
+            '/alunos/minha-area/exportar-notas/pdf/'
+        )
+        self.assertEqual(
+            reverse('exportar_notas_aluno_excel'),
+            '/alunos/minha-area/exportar-notas/excel/'
+        )
         self.assertEqual(reverse('lista_alunos'), '/alunos/')
         self.assertEqual(reverse('dashboard_aluno', args=[1]), '/alunos/dashboard/1/')
         self.assertEqual(
@@ -196,6 +210,62 @@ class AlunoPageRenderTests(TestCase):
         self.client.force_login(aluno_user)
 
         response = self.client.get(reverse('lista_alunos'))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_aluno_exporta_proprias_notas_em_pdf_e_excel(self):
+        aluno_user = User.objects.create_user(
+            username='aluno_exporta_notas',
+            password='aluno12345'
+        )
+        Profile.objects.create(user=aluno_user, role='aluno')
+        aluno = Aluno.objects.create(
+            user=aluno_user,
+            nome='Ana Exporta',
+            matricula='A106',
+        )
+        disciplina = Disciplina.objects.create(nome='Matematica', codigo='MAT-EXP')
+        outra_disciplina = Disciplina.objects.create(nome='Fisica', codigo='FIS-EXP')
+        outro_aluno = Aluno.objects.create(nome='Bruno Exporta', matricula='A107')
+        aluno.disciplinas.add(disciplina)
+        Nota.objects.create(aluno=aluno, disciplina=disciplina, nota1=8, nota2=9)
+        Nota.objects.create(aluno=outro_aluno, disciplina=outra_disciplina, nota1=4, nota2=5)
+        self.client.force_login(aluno_user)
+
+        response = self.client.get(
+            reverse('exportar_notas_aluno'),
+            {'disciplina': disciplina.id},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Matematica')
+        self.assertContains(response, 'Exportar PDF')
+        self.assertContains(response, 'Exportar Excel')
+        self.assertNotContains(response, 'Fisica')
+        self.assertNotContains(response, 'Bruno Exporta')
+
+        pdf_response = self.client.get(
+            reverse('exportar_notas_aluno_pdf'),
+            {'disciplina': disciplina.id},
+        )
+        self.assertEqual(pdf_response.status_code, 200)
+        self.assertEqual(pdf_response['Content-Type'], 'application/pdf')
+
+        excel_response = self.client.get(
+            reverse('exportar_notas_aluno_excel'),
+            {'disciplina': disciplina.id},
+        )
+        workbook = load_workbook(BytesIO(excel_response.content))
+        sheet = workbook.active
+        linhas = list(sheet.iter_rows(values_only=True))
+
+        self.assertEqual(excel_response.status_code, 200)
+        self.assertEqual(linhas[1][0], 'Ana Exporta')
+        self.assertEqual(linhas[1][2], 'Matematica')
+        self.assertEqual(len(linhas), 2)
+
+    def test_professor_nao_acessa_exportacao_de_notas_do_aluno(self):
+        response = self.client.get(reverse('exportar_notas_aluno'))
 
         self.assertEqual(response.status_code, 403)
 

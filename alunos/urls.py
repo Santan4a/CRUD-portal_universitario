@@ -9,6 +9,16 @@ urlpatterns = [
         views.exportar_notas_aluno,
         name='exportar_notas_aluno'
     ),
+    path(
+        'minha-area/exportar-notas/pdf/',
+        views.exportar_notas_aluno_pdf,
+        name='exportar_notas_aluno_pdf'
+    ),
+    path(
+        'minha-area/exportar-notas/excel/',
+        views.exportar_notas_aluno_excel,
+        name='exportar_notas_aluno_excel'
+    ),
 
     path('', views.lista_alunos, name='lista_alunos'),
 

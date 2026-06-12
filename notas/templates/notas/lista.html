@@ -41,6 +41,13 @@
                     </a>
 
                 </div>
+            {% elif user_is_aluno %}
+                <div class="row-actions">
+                    <a class="button button-success"
+                    href="{% url 'exportar_notas_aluno' %}">
+                        Exportar Notas
+                    </a>
+                </div>
             {% endif %}
         </div>
 

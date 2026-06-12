@@ -65,6 +65,8 @@ class NotaAccessTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Ana Silva')
+        self.assertContains(response, reverse('exportar_notas_aluno'))
+        self.assertContains(response, 'Exportar Notas')
         self.assertNotContains(response, 'Bruno Lima')
 
     def test_student_cannot_create_nota(self):

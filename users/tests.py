@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from smtplib import SMTPAuthenticationError
 
 from django.contrib.auth.models import User
 from django.core import mail
@@ -480,6 +481,12 @@ class GestaoUsuarioViewTests(TestCase):
         self.assertIn('Seu acesso ao Portal Universitario', email.subject)
         self.assertIn(aluno.username, email.body)
         self.assertIn(senha_inicial, email.body)
+        self.assertIn('Dados do aluno:', email.body)
+        self.assertIn(aluno.aluno.nome, email.body)
+        self.assertIn(aluno.aluno.matricula, email.body)
+        self.assertIn(curso, email.body)
+        self.assertIn(aluno.aluno.get_turno_display(), email.body)
+        self.assertIn(aluno.aluno.disciplinas.first().nome, email.body)
         self.assertIn('/login/', email.body)
         self.assertNotIn('E-mail institucional', email.body)
         self.assertContains(
@@ -488,7 +495,7 @@ class GestaoUsuarioViewTests(TestCase):
         )
 
     @override_settings(EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend')
-    def test_cadastro_aluno_avisa_quando_email_usa_console(self):
+    def test_cadastro_aluno_avisa_quando_smtp_nao_esta_configurado(self):
         self.client.get(reverse('cadastrar_usuario_gestao'))
         curso = cursos_disponiveis()[0]
 
@@ -508,7 +515,34 @@ class GestaoUsuarioViewTests(TestCase):
         self.assertRedirects(response, reverse('dashboard_gestao'))
         self.assertContains(
             response,
-            'As credenciais foram exibidas no terminal do servidor.',
+            'SMTP de e-mail nao configurado.',
+        )
+
+    def test_cadastro_aluno_avisa_quando_gmail_recusa_credenciais(self):
+        self.client.get(reverse('cadastrar_usuario_gestao'))
+        curso = cursos_disponiveis()[0]
+
+        with patch(
+            'users.views.enviar_credenciais_acesso_aluno',
+            side_effect=SMTPAuthenticationError(535, b'Bad credentials'),
+        ):
+            response = self.client.post(
+                reverse('cadastrar_usuario_gestao'),
+                {
+                    'role': Profile.ROLE_ALUNO,
+                    'nome': 'Ana Gmail',
+                    'email': 'ana.gmail@example.com',
+                    'password': 'senha-manual',
+                    'curso': curso,
+                    'turno': Aluno.TURNO_TARDE,
+                },
+                follow=True,
+            )
+
+        self.assertRedirects(response, reverse('dashboard_gestao'))
+        self.assertContains(
+            response,
+            'Gmail recusou o login SMTP',
         )
 
     @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')

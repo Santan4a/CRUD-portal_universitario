@@ -16,4 +16,5 @@ else
 fi
 
 "$VENV_PYTHON" manage.py migrate
+"$VENV_PYTHON" manage.py popular_cronograma
 "$VENV_PYTHON" manage.py runserver

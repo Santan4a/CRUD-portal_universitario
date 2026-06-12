@@ -14,6 +14,7 @@ from users.access import can_manage_screen, filter_students_for_user, is_aluno, 
 from users.models import Profile
 
 from django.http import HttpResponse
+from openpyxl import Workbook
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 
@@ -29,6 +30,32 @@ import os
 from django.conf import settings
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
+
+
+def obter_aluno_do_usuario(user):
+    if not is_aluno(user):
+        raise PermissionDenied
+
+    return get_object_or_404(Aluno, user=user)
+
+
+def notas_exportaveis_do_aluno(aluno):
+    disciplina_ids = aluno.disciplinas.values_list('id', flat=True)
+    return (
+        Nota.objects.filter(aluno=aluno, disciplina_id__in=disciplina_ids)
+        .select_related('aluno', 'disciplina')
+        .order_by('disciplina__nome', 'disciplina__codigo')
+    )
+
+
+def disciplinas_exportaveis_do_aluno(aluno):
+    notas = notas_exportaveis_do_aluno(aluno)
+    return (
+        aluno.disciplinas.filter(id__in=notas.values('disciplina_id'))
+        .order_by('nome', 'codigo')
+        .distinct()
+    )
+
 
 @manage_screen_required(Profile.SCREEN_ALUNOS)
 def lista_alunos(request):
@@ -222,21 +249,38 @@ def tutor_ia(request):
 
 @login_required
 def exportar_notas_aluno(request):
+    aluno = obter_aluno_do_usuario(request.user)
+    disciplina_id = request.GET.get('disciplina')
+    notas = None
 
-    if not is_aluno(request.user):
-        raise PermissionDenied
+    if disciplina_id:
+        notas = notas_exportaveis_do_aluno(aluno).filter(
+            disciplina_id=disciplina_id
+        )
 
-    aluno = get_object_or_404(
-        Aluno,
-        user=request.user
+    return render(
+        request,
+        'alunos/exportar_notas.html',
+        {
+            'aluno': aluno,
+            'disciplinas': disciplinas_exportaveis_do_aluno(aluno),
+            'notas': notas,
+            'disciplina_id': disciplina_id,
+            'busca_realizada': bool(disciplina_id),
+        }
     )
 
-    notas = Nota.objects.filter(
-        aluno=aluno
-    ).select_related(
-        'aluno',
-        'disciplina'
-    )
+
+@login_required
+def exportar_notas_aluno_pdf(request):
+    aluno = obter_aluno_do_usuario(request.user)
+    disciplina_id = request.GET.get('disciplina')
+    notas = notas_exportaveis_do_aluno(aluno)
+
+    if disciplina_id:
+        notas = notas.filter(
+            disciplina_id=disciplina_id
+        )
 
     response = HttpResponse(
         content_type='application/pdf'
@@ -434,5 +478,56 @@ def exportar_notas_aluno(request):
     )
 
     pdf.save()
+
+    return response
+
+
+@login_required
+def exportar_notas_aluno_excel(request):
+    aluno = obter_aluno_do_usuario(request.user)
+    disciplina_id = request.GET.get('disciplina')
+    notas = notas_exportaveis_do_aluno(aluno)
+
+    if disciplina_id:
+        notas = notas.filter(
+            disciplina_id=disciplina_id
+        )
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = 'Minhas Notas'
+    sheet.append([
+        'Aluno',
+        'Matricula',
+        'Disciplina',
+        'Nota 1',
+        'Nota 2',
+        'Media',
+        'Situacao',
+    ])
+
+    for nota in notas:
+        media = round(nota.media(), 1)
+        sheet.append([
+            aluno.nome,
+            aluno.matricula,
+            nota.disciplina.nome,
+            nota.nota1,
+            nota.nota2,
+            media,
+            'Aprovado' if media >= 7 else 'Revisar',
+        ])
+
+    response = HttpResponse(
+        content_type=(
+            'application/vnd.openxmlformats-'
+            'officedocument.spreadsheetml.sheet'
+        )
+    )
+    response['Content-Disposition'] = (
+        f'attachment; filename="boletim_{aluno.matricula}.xlsx"'
+    )
+
+    workbook.save(response)
 
     return response
