@@ -38,7 +38,7 @@
                         type="search"
                         name="q"
                         value="{{ query }}"
-                        placeholder="Nome, login, matrícula, curso, disciplina ou e-mail"
+                        placeholder="Nome, login, matrícula, curso, turno, disciplina ou e-mail"
                 >
             </div>
             <div class="dashboard-filter-field">
@@ -75,6 +75,7 @@
                         <th>Aluno</th>
                         <th>Matrícula</th>
                         <th>Curso</th>
+                        <th>Turno</th>
                         <th>Disciplinas</th>
                         <th>Criado em</th>
                         <th>Ações</th>
@@ -100,6 +101,13 @@
                                 <span class="cell-subtitle">-</span>
                             {% endif %}
                         </td>
+                        <td>
+                            {% if aluno.turno %}
+                                <span class="mini-tag">{{ aluno.get_turno_display }}</span>
+                            {% else %}
+                                <span class="cell-subtitle">-</span>
+                            {% endif %}
+                        </td>
                         <td><span class="mini-tag">{{ aluno.disciplinas.count }}</span></td>
                         <td>
                             {% if aluno.user %}
@@ -117,7 +125,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6">
+                        <td colspan="7">
                             <div class="empty-state">
                                 <strong>Nenhum aluno encontrado</strong>
                                 <span>Revise a busca ou cadastre um novo aluno.</span>

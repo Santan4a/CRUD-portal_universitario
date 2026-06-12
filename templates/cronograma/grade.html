@@ -5,6 +5,7 @@
     <tr>
         <th>Disciplina</th>
         <th>Dia</th>
+        <th>Turno</th>
         <th>Início</th>
         <th>Fim</th>
         <th>Sala</th>
@@ -18,9 +19,11 @@
 
         <td>{{ aula.get_dia_semana_display }}</td>
 
-        <td>{{ aula.horario_inicio }}</td>
+        <td>{{ aula.get_turno_display }}</td>
 
-        <td>{{ aula.horario_fim }}</td>
+        <td>{{ aula.horario_inicio|time:"H:i" }}</td>
+
+        <td>{{ aula.horario_fim|time:"H:i" }}</td>
 
         <td>{{ aula.sala }}</td>
 

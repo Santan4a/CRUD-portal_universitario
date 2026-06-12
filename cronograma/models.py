@@ -2,6 +2,15 @@ from django.db import models
 from disciplinas.models import Disciplina
 
 class Cronograma(models.Model):
+    TURNO_MANHA = 'manha'
+    TURNO_TARDE = 'tarde'
+    TURNO_NOITE = 'noite'
+
+    TURNO_CHOICES = (
+        (TURNO_MANHA, 'Manhã'),
+        (TURNO_TARDE, 'Tarde'),
+        (TURNO_NOITE, 'Noite'),
+    )
 
     DIAS =  [
         ('SEG', 'Segunda'),
@@ -21,6 +30,12 @@ class Cronograma(models.Model):
         choices=DIAS
     )
 
+    turno = models.CharField(
+        max_length=10,
+        choices=TURNO_CHOICES,
+        default=TURNO_NOITE,
+    )
+
     horario_inicio = models.TimeField()
 
     horario_fim = models.TimeField()
@@ -30,4 +45,4 @@ class Cronograma(models.Model):
     )
 
     def __str__(self):
-        return f'{self.disciplina.nome} - {self.dia_semana}'
+        return f'{self.disciplina.nome} - {self.get_turno_display()} - {self.dia_semana}'

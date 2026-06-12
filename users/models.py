@@ -7,10 +7,20 @@ class Profile(models.Model):
     ROLE_PROFESSOR = 'professor'
     ROLE_GESTAO = 'gestao'
 
+    TURNO_MANHA = 'manha'
+    TURNO_TARDE = 'tarde'
+    TURNO_NOITE = 'noite'
+
     ROLE_CHOICES = (
         (ROLE_ALUNO, 'Aluno'),
         (ROLE_PROFESSOR, 'Professor'),
         (ROLE_GESTAO, 'Gestao'),
+    )
+
+    TURNO_CHOICES = (
+        (TURNO_MANHA, 'Manhã'),
+        (TURNO_TARDE, 'Tarde'),
+        (TURNO_NOITE, 'Noite'),
     )
 
     SCREEN_GESTAO = 'gestao'
@@ -36,6 +46,12 @@ class Profile(models.Model):
         verbose_name='telas permitidas',
     )
     curso = models.CharField(max_length=120, blank=True, default='')
+    turno = models.CharField(
+        max_length=10,
+        choices=TURNO_CHOICES,
+        blank=True,
+        default='',
+    )
     disciplinas = models.ManyToManyField(
         'disciplinas.Disciplina',
         blank=True,

@@ -12,6 +12,10 @@
             <strong>{{ media_geral|floatformat:1 }}</strong>
         </article>
         <article class="metric">
+            <span>Turno</span>
+            <strong>{{ aluno.get_turno_display|default:"Não informado" }}</strong>
+        </article>
+        <article class="metric">
             <span>Disciplinas com notas</span>
             <strong>{{ disciplinas_cursando }}</strong>
         </article>
@@ -38,6 +42,10 @@
             <div>
                 <span>Curso</span>
                 <strong>{{ aluno.curso|default:"Não informado" }}</strong>
+            </div>
+            <div>
+                <span>Turno</span>
+                <strong>{{ aluno.get_turno_display|default:"Não informado" }}</strong>
             </div>
             <div>
                 <span>Próxima atividade</span>

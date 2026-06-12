@@ -73,6 +73,39 @@ def can_manage_screen(user, screen):
     return has_screen_access(user, screen) and not is_aluno(user)
 
 
+def is_global_manager(user):
+    return get_user_role(user) in (Profile.ROLE_GESTAO, 'superuser')
+
+
+def get_professor_discipline_ids(user):
+    if not is_professor(user):
+        return []
+
+    try:
+        return list(user.profile.disciplinas.values_list('id', flat=True))
+    except (AttributeError, ObjectDoesNotExist):
+        return []
+
+
+def filter_students_for_user(user, queryset):
+    if is_professor(user):
+        discipline_ids = get_professor_discipline_ids(user)
+        return queryset.filter(disciplinas__id__in=discipline_ids).distinct()
+
+    if is_aluno(user):
+        return queryset.filter(user=user)
+
+    return queryset
+
+
+def filter_discipline_records_for_user(user, queryset, discipline_field='disciplina'):
+    if is_professor(user):
+        discipline_ids = get_professor_discipline_ids(user)
+        return queryset.filter(**{f'{discipline_field}_id__in': discipline_ids})
+
+    return queryset
+
+
 def is_aluno(user):
     return get_user_role(user) == Profile.ROLE_ALUNO
 

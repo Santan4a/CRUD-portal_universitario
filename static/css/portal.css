@@ -1013,7 +1013,7 @@ select[multiple] {
     border-radius: 8px;
     background:
         linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
-        url("../assets/brand/logo.png") center/72% no-repeat;
+        url("../assets/brand/footer-logo.png") center/72% no-repeat;
     box-shadow: 0 28px 80px rgba(0, 10, 35, 0.26);
     content: "";
 }

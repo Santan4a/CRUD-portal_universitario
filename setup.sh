@@ -16,7 +16,7 @@ fi
 if [ ! -d ".venv" ]; then
     echo "Ambiente virtual não encontrado! Criando ambiente virtual..."
     
-    if ! $PYTHON -m venv .venv; then
+    if ! "$PYTHON" -m venv .venv; then
         echo "Erro ao criar ambiente virtual"
         exit 1
     fi
@@ -31,4 +31,4 @@ else
     exit 1
 fi
 
-$VENV_PYTHON -m pip install -r requirements.txt
+"$VENV_PYTHON" -m pip install -r requirements.txt

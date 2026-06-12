@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block page_title %}Registrar Chamada | Portal Universitário{% endblock %}
+{% block eyebrow %}Frequência{% endblock %}
+{% block title %}Registrar Chamada{% endblock %}
+
+{% block header_actions %}
+<a class="button" href="{% url 'lista_faltas' %}">Voltar</a>
+{% endblock %}
+
+{% block content %}
+<div class="content-stack">
+    <form class="form-panel" method="GET">
+        {% if form.non_field_errors %}
+            <div class="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-grid">
+            <div class="form-field">
+                <label for="{{ form.disciplina.id_for_label }}">Disciplina</label>
+                {{ form.disciplina }}
+                {% for error in form.disciplina.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="form-field">
+                <label for="{{ form.data.id_for_label }}">Data</label>
+                {{ form.data }}
+                {% for error in form.data.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit">Carregar alunos</button>
+        </div>
+    </form>
+
+    {% if alunos %}
+    <form class="data-panel" method="POST">
+        {% csrf_token %}
+        {{ form.disciplina.as_hidden }}
+        {{ form.data.as_hidden }}
+
+        <div class="panel-header">
+            <div class="panel-title">
+                <h2>Presenças</h2>
+                <span>{{ alunos|length }} aluno(s)</span>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Aluno</th>
+                        <th>Matrícula</th>
+                        <th>Presente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for aluno in alunos %}
+                    <tr>
+                        <td>{{ aluno.nome }}</td>
+                        <td>{{ aluno.matricula }}</td>
+                        <td>
+                            <input
+                                type="checkbox"
+                                name="presentes"
+                                value="{{ aluno.id }}"
+                                {% if aluno.id in presencas_marcadas %}checked{% endif %}
+                            >
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit">Salvar chamada</button>
+            <a class="button" href="{% url 'lista_faltas' %}">Cancelar</a>
+        </div>
+    </form>
+    {% elif form.is_bound and not form.errors %}
+    <section class="data-panel">
+        <div class="empty-state">
+            <strong>Nenhum aluno encontrado</strong>
+            <span>Não há alunos vinculados a esta disciplina no seu escopo.</span>
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

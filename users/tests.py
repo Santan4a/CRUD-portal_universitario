@@ -63,6 +63,7 @@ class GestaoUsuarioFormTests(TestCase):
             'email': 'ana@example.com',
             'password': 'senha-manual',
             'curso': curso,
+            'turno': Aluno.TURNO_MANHA,
         }, initial_password=senha_inicial)
 
         self.assertTrue(form.is_valid(), form.errors)
@@ -80,9 +81,11 @@ class GestaoUsuarioFormTests(TestCase):
         self.assertEqual(user.profile.role, Profile.ROLE_ALUNO)
         self.assertEqual(user.profile.matricula, user.username)
         self.assertEqual(user.profile.curso, curso)
+        self.assertEqual(user.profile.turno, Aluno.TURNO_MANHA)
         self.assertEqual(aluno.nome, 'Ana Silva')
         self.assertEqual(aluno.matricula, user.username)
         self.assertEqual(aluno.curso, curso)
+        self.assertEqual(aluno.turno, Aluno.TURNO_MANHA)
         self.assertEqual(
             set(aluno.disciplinas.values_list('codigo', flat=True)),
             codigos_esperados,
@@ -95,10 +98,24 @@ class GestaoUsuarioFormTests(TestCase):
             'nome': 'Ana Silva',
             'password': 'aluno12345',
             'curso': curso,
+            'turno': Aluno.TURNO_MANHA,
         })
 
         self.assertFalse(form.is_valid())
         self.assertIn('email', form.errors)
+
+    def test_aluno_exige_turno(self):
+        curso = cursos_disponiveis()[0]
+        form = GestaoUsuarioForm(data={
+            'role': Profile.ROLE_ALUNO,
+            'nome': 'Ana Silva',
+            'email': 'ana@example.com',
+            'password': 'aluno12345',
+            'curso': curso,
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('turno', form.errors)
 
     def test_telas_vem_predefinidas_por_tipo_de_usuario(self):
         self.assertEqual(
@@ -120,6 +137,7 @@ class GestaoUsuarioFormTests(TestCase):
             'email': 'ana@example.com',
             'password': 'aluno12345',
             'curso': curso,
+            'turno': Aluno.TURNO_TARDE,
             'allowed_screens': [Profile.SCREEN_GESTAO],
         })
         professor_form = GestaoUsuarioForm(data={
@@ -448,6 +466,7 @@ class GestaoUsuarioViewTests(TestCase):
                 'email': 'ana.email@example.com',
                 'password': 'senha-manual',
                 'curso': curso,
+                'turno': Aluno.TURNO_NOITE,
             },
             follow=True,
         )
@@ -481,6 +500,7 @@ class GestaoUsuarioViewTests(TestCase):
                 'email': 'ana.console@example.com',
                 'password': 'senha-manual',
                 'curso': curso,
+                'turno': Aluno.TURNO_TARDE,
             },
             follow=True,
         )

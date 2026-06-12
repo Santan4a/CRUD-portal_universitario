@@ -156,8 +156,9 @@
 .ln-logo__icon {
     width: 36px;
     height: 36px;
+    border: 1px solid #dbe8fa;
     border-radius: 9px;
-    background: #6366f1;
+    background: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;

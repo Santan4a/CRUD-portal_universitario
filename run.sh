@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 
 #bash run.sh, cod para rodar o script run.
 
@@ -13,5 +15,5 @@ else
     exit 1
 fi
 
-$VENV_PYTHON manage.py migrate
-$VENV_PYTHON manage.py runserver
+"$VENV_PYTHON" manage.py migrate
+"$VENV_PYTHON" manage.py runserver
