@@ -50,6 +50,14 @@ def env_int(name, default):
     return int(value)
 
 
+def env_list(name, default=''):
+    return [
+        item.strip()
+        for item in os.environ.get(name, default).split(',')
+        if item.strip()
+    ]
+
+
 PRODUCTION = env_bool('DJANGO_PRODUCTION', False)
 
 # SECURITY WARNING: keep the secret key used in production secret.
@@ -277,6 +285,9 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_URL = 'home'
 LOGIN_REDIRECT_URL = '/portal/'
@@ -309,9 +320,13 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     EMAIL_HOST_USER or 'Portal Tech <no-reply@portaltech.com>',
 )
 
+CSRF_TRUSTED_ORIGINS = env_list('DJANGO_CSRF_TRUSTED_ORIGINS')
 SECURE_SSL_REDIRECT = env_bool('DJANGO_SECURE_SSL_REDIRECT', PRODUCTION)
 SESSION_COOKIE_SECURE = env_bool('DJANGO_SESSION_COOKIE_SECURE', PRODUCTION)
 CSRF_COOKIE_SECURE = env_bool('DJANGO_CSRF_COOKIE_SECURE', PRODUCTION)
 SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_SECURE_HSTS_SECONDS', 31536000 if PRODUCTION else 0))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool('DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS', PRODUCTION)
 SECURE_HSTS_PRELOAD = env_bool('DJANGO_SECURE_HSTS_PRELOAD', PRODUCTION)
+
+if env_bool('DJANGO_USE_X_FORWARDED_PROTO', PRODUCTION):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

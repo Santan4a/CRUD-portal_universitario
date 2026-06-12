@@ -38,4 +38,52 @@
         </div>
     </form>
 </div>
+
+{{ disciplinas_por_aluno|json_script:"disciplinas-por-aluno-data" }}
+<script>
+(function () {
+    const aluno = document.getElementById('id_aluno');
+    const disciplina = document.getElementById('id_disciplina');
+    const dados = document.getElementById('disciplinas-por-aluno-data');
+
+    if (!aluno || !disciplina || !dados) {
+        return;
+    }
+
+    const disciplinasPorAluno = JSON.parse(dados.textContent);
+
+    function criarOpcao(valor, texto) {
+        const option = document.createElement('option');
+        option.value = valor;
+        option.textContent = texto;
+        return option;
+    }
+
+    function renderizarDisciplinas() {
+        const valorAtual = disciplina.value;
+        const disciplinas = disciplinasPorAluno[aluno.value] || [];
+        const textoInicial = aluno.value
+            ? 'Selecione uma disciplina'
+            : 'Selecione um aluno primeiro';
+
+        disciplina.replaceChildren(criarOpcao('', textoInicial));
+
+        disciplinas.forEach(function (item) {
+            disciplina.appendChild(
+                criarOpcao(String(item.id), item.nome + ' (' + item.codigo + ')')
+            );
+        });
+
+        const valorExiste = disciplinas.some(function (item) {
+            return String(item.id) === valorAtual;
+        });
+
+        disciplina.value = valorExiste ? valorAtual : '';
+        disciplina.disabled = !aluno.value || disciplinas.length === 0;
+    }
+
+    aluno.addEventListener('change', renderizarDisciplinas);
+    renderizarDisciplinas();
+}());
+</script>
 {% endblock %}

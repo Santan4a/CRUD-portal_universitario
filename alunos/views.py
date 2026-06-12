@@ -1,6 +1,4 @@
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-
 import os
 import json
 
@@ -12,7 +10,7 @@ from .models import Aluno
 from faltas.models import Falta
 from notas.models import Nota
 from cronograma.models import Cronograma
-from users.access import can_manage_screen, is_aluno, is_professor, manage_screen_required
+from users.access import can_manage_screen, filter_students_for_user, is_aluno, is_professor, manage_screen_required
 from users.models import Profile
 
 from django.http import HttpResponse
@@ -34,7 +32,10 @@ from reportlab.lib.pagesizes import letter
 
 @manage_screen_required(Profile.SCREEN_ALUNOS)
 def lista_alunos(request):
-    alunos = Aluno.objects.all()
+    alunos = filter_students_for_user(
+        request.user,
+        Aluno.objects.select_related('user').prefetch_related('disciplinas'),
+    )
     return render(request, 'alunos/lista.html', {
         'alunos': alunos,
         'mostrar_acoes': False
@@ -45,7 +46,10 @@ def lista_alunos(request):
 def dashboard_aluno(request, id=None):
 
     if id is not None and can_manage_screen(request.user, Profile.SCREEN_ALUNOS):
-        aluno = get_object_or_404(Aluno, id=id)
+        aluno = get_object_or_404(
+            filter_students_for_user(request.user, Aluno.objects.all()),
+            id=id,
+        )
     elif is_aluno(request.user):
         aluno = get_object_or_404(Aluno, user=request.user)
     else:
@@ -117,6 +121,9 @@ def minha_area(request):
             disciplina_id__in=disciplina_ids
         ).select_related('disciplina')
 
+        if aluno.turno:
+            cronograma_qs = cronograma_qs.filter(turno=aluno.turno)
+
         # ordenação correta
         ORDEM_DIAS = {
             "Segunda": 1,
@@ -157,14 +164,14 @@ def minha_area(request):
 
 @login_required
 def pagina_tutor_ia(request):
+    if not is_aluno(request.user):
+        raise PermissionDenied
+
     return render(request, 'alunos/tutor_ia.html')
 
 
 def criar_cliente_openai():
     from openai import OpenAI
-    from dotenv import load_dotenv
-
-    load_dotenv()
 
     api_key = os.getenv('OPENAI_API_KEY')
     if not api_key:
@@ -173,15 +180,21 @@ def criar_cliente_openai():
     return OpenAI(api_key=api_key)
 
 
-@csrf_exempt
+@login_required
 def tutor_ia(request):
+
+    if not is_aluno(request.user):
+        raise PermissionDenied
 
     if request.method != 'POST':
         return JsonResponse({'resposta': 'Método não permitido.'}, status=405)
 
     try:
         data = json.loads(request.body)
-        pergunta = data.get('mensagem')
+        pergunta = (data.get('mensagem') or '').strip()
+
+        if not pergunta:
+            return JsonResponse({'resposta': 'Digite uma pergunta para o tutor.'}, status=400)
 
         client = criar_cliente_openai()
 

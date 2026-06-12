@@ -6,9 +6,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from CRUD import settings
 from alunos.models import Aluno
+from disciplinas.models import Disciplina
 from .models import Nota
 from .forms import NotaForm
-from users.access import can_manage_screen, has_screen_access, is_aluno, manage_screen_required
+from users.access import can_manage_screen, filter_students_for_user, get_professor_discipline_ids, has_screen_access, is_aluno, is_professor, manage_screen_required
 from users.models import Profile
 
 from django.http import HttpResponse
@@ -20,13 +21,24 @@ from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
 from reportlab.lib.utils import ImageReader
 
-def disciplinas_por_aluno_json():
+def disciplinas_por_aluno_json(user=None):
     alunos = Aluno.objects.prefetch_related('disciplinas').order_by('nome')
+    discipline_ids = None
+
+    if user:
+        alunos = filter_students_for_user(user, alunos)
+        if is_professor(user):
+            discipline_ids = set(get_professor_discipline_ids(user))
+
     dados = {}
 
     for aluno in alunos:
+        disciplinas_qs = aluno.disciplinas.all()
+        if discipline_ids is not None:
+            disciplinas_qs = disciplinas_qs.filter(id__in=discipline_ids)
+
         disciplinas = sorted(
-            aluno.disciplinas.all(),
+            disciplinas_qs,
             key=lambda disciplina: (disciplina.nome, disciplina.codigo)
         )
         dados[str(aluno.id)] = [
@@ -41,34 +53,53 @@ def disciplinas_por_aluno_json():
     return dados
 
 
+
+def notas_permitidas_para_usuario(user):
+    notas = Nota.objects.select_related('aluno', 'disciplina')
+
+    if is_aluno(user):
+        aluno = getattr(user, 'aluno', None)
+        if not aluno:
+            return Nota.objects.none()
+
+        disciplina_ids = list(aluno.disciplinas.values_list('id', flat=True))
+        return notas.filter(aluno=aluno, disciplina_id__in=disciplina_ids)
+
+    if can_manage_screen(user, Profile.SCREEN_NOTAS):
+        if is_professor(user):
+            discipline_ids = get_professor_discipline_ids(user)
+            return notas.filter(
+                disciplina_id__in=discipline_ids,
+                aluno__disciplinas__id__in=discipline_ids,
+            ).distinct()
+
+        return notas
+
+    if has_screen_access(user, Profile.SCREEN_NOTAS):
+        return Nota.objects.none()
+
+    raise PermissionDenied
+
+
+def disciplinas_exportaveis_para_usuario(user):
+    notas = notas_permitidas_para_usuario(user)
+    return Disciplina.objects.filter(
+        id__in=notas.values('disciplina_id')
+    ).order_by('nome', 'codigo').distinct()
+
+
 # LISTAR
 @login_required
 def lista_notas(request):
     can_manage = can_manage_screen(request.user, Profile.SCREEN_NOTAS)
     can_delete = can_manage
-
-    if is_aluno(request.user):
-        aluno = getattr(request.user, 'aluno', None)
-        notas = Nota.objects.none()
-
-        if aluno:
-            notas = Nota.objects.filter(aluno=aluno)
-            disciplina_ids = list(aluno.disciplinas.values_list('id', flat=True))
-
-            if disciplina_ids:
-                notas = notas.filter(disciplina_id__in=disciplina_ids)
-    elif can_manage:
-        notas = Nota.objects.all()
-    elif has_screen_access(request.user, Profile.SCREEN_NOTAS):
-        notas = Nota.objects.none()
-    else:
-        raise PermissionDenied
+    notas = notas_permitidas_para_usuario(request.user)
 
     return render(
         request,
         'notas/lista.html',
         {
-            'notas': notas.select_related('aluno', 'disciplina'),
+            'notas': notas,
             'can_manage': can_manage,
             'can_delete': can_delete,
         }
@@ -78,7 +109,7 @@ def lista_notas(request):
 # CRIAR
 @manage_screen_required(Profile.SCREEN_NOTAS)
 def criar_nota(request):
-    form = NotaForm(request.POST or None)
+    form = NotaForm(request.POST or None, user=request.user)
 
     if form.is_valid():
         form.save()
@@ -89,7 +120,7 @@ def criar_nota(request):
         'notas/form.html',
         {
             'form': form,
-            'disciplinas_por_aluno': disciplinas_por_aluno_json(),
+            'disciplinas_por_aluno': disciplinas_por_aluno_json(request.user),
         }
     )
 
@@ -97,8 +128,8 @@ def criar_nota(request):
 # EDITAR
 @manage_screen_required(Profile.SCREEN_NOTAS)
 def editar_nota(request, id):
-    nota = get_object_or_404(Nota, id=id)
-    form = NotaForm(request.POST or None, instance=nota)
+    nota = get_object_or_404(notas_permitidas_para_usuario(request.user), id=id)
+    form = NotaForm(request.POST or None, instance=nota, user=request.user)
 
     if form.is_valid():
         form.save()
@@ -109,7 +140,7 @@ def editar_nota(request, id):
         'notas/form.html',
         {
             'form': form,
-            'disciplinas_por_aluno': disciplinas_por_aluno_json(),
+            'disciplinas_por_aluno': disciplinas_por_aluno_json(request.user),
         }
     )
 
@@ -117,7 +148,7 @@ def editar_nota(request, id):
 # DELETAR
 @manage_screen_required(Profile.SCREEN_NOTAS)
 def deletar_nota(request, id):
-    nota = get_object_or_404(Nota, id=id)
+    nota = get_object_or_404(notas_permitidas_para_usuario(request.user), id=id)
 
     if request.method == 'POST':
         nota.delete()
@@ -126,51 +157,33 @@ def deletar_nota(request, id):
     return render(request, 'notas/confirmar_exclusao.html', {'nota': nota})
 
 # TELA DE EXPORTAÇÃO
-@login_required
+@manage_screen_required(Profile.SCREEN_NOTAS)
 def exportar_notas(request):
 
-    disciplinas = set()
-
-    notas_existentes = Nota.objects.select_related(
-        'disciplina'
-    )
-
-    for nota in notas_existentes:
-        disciplinas.add(nota.disciplina)
-
     disciplina_id = request.GET.get('disciplina')
-
     notas = None
+    notas_permitidas = notas_permitidas_para_usuario(request.user)
 
     if disciplina_id:
-
-        notas = Nota.objects.filter(
-            disciplina_id=disciplina_id
-        ).select_related(
-            'aluno',
-            'disciplina'
-        )
+        notas = notas_permitidas.filter(disciplina_id=disciplina_id)
 
     return render(
         request,
         'notas/exportar_notas.html',
         {
-            'disciplinas': disciplinas,
+            'disciplinas': disciplinas_exportaveis_para_usuario(request.user),
             'notas': notas,
         }
     )
 
 # EXPORTAR NOTAS
-@login_required
+@manage_screen_required(Profile.SCREEN_NOTAS)
 def exportar_pdf(request):
 
     disciplina_id = request.GET.get('disciplina')
 
-    notas = Nota.objects.filter(
+    notas = notas_permitidas_para_usuario(request.user).filter(
         disciplina_id=disciplina_id
-    ).select_related(
-        'aluno',
-        'disciplina'
     )
 
     response = HttpResponse(
@@ -336,16 +349,13 @@ def exportar_pdf(request):
     return response
 
 # EXPORTAR EXCEL
-@login_required
+@manage_screen_required(Profile.SCREEN_NOTAS)
 def exportar_excel(request):
 
     disciplina_id = request.GET.get('disciplina')
 
-    notas = Nota.objects.filter(
+    notas = notas_permitidas_para_usuario(request.user).filter(
         disciplina_id=disciplina_id
-    ).select_related(
-        'aluno',
-        'disciplina'
     )
 
     workbook = Workbook()

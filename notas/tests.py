@@ -16,10 +16,12 @@ class NotaDeleteTests(TestCase):
             username='professor_notas_teste',
             password='admin12345'
         )
-        Profile.objects.create(user=self.user, role='professor')
+        self.profile = Profile.objects.create(user=self.user, role='professor')
         self.client.force_login(self.user)
         self.aluno = Aluno.objects.create(nome='Ana Silva', matricula='N101')
         self.disciplina = Disciplina.objects.create(nome='Matematica', codigo='MAT101')
+        self.profile.disciplinas.add(self.disciplina)
+        self.aluno.disciplinas.add(self.disciplina)
         self.nota = Nota.objects.create(
             aluno=self.aluno,
             disciplina=self.disciplina,
@@ -195,6 +197,45 @@ class NotaAccessTests(TestCase):
 
         self.assertIn(disciplina_do_aluno, form.fields['disciplina'].queryset)
         self.assertNotIn(outra_disciplina, form.fields['disciplina'].queryset)
+
+    def test_professor_only_sees_notes_from_own_disciplines(self):
+        professor = User.objects.create_user(
+            username='professor_escopo_notas',
+            password='prof12345',
+        )
+        profile = Profile.objects.create(user=professor, role='professor')
+        disciplina_professor = Disciplina.objects.create(
+            nome='Banco de Dados',
+            codigo='BD101',
+        )
+        outra_disciplina = Disciplina.objects.create(
+            nome='Redes',
+            codigo='RED101',
+        )
+        profile.disciplinas.add(disciplina_professor)
+        aluno_visivel = Aluno.objects.create(nome='Aluno Visivel', matricula='N200')
+        aluno_oculto = Aluno.objects.create(nome='Aluno Oculto', matricula='N201')
+        aluno_visivel.disciplinas.add(disciplina_professor)
+        aluno_oculto.disciplinas.add(outra_disciplina)
+        Nota.objects.create(
+            aluno=aluno_visivel,
+            disciplina=disciplina_professor,
+            nota1=8,
+            nota2=9,
+        )
+        Nota.objects.create(
+            aluno=aluno_oculto,
+            disciplina=outra_disciplina,
+            nota1=5,
+            nota2=6,
+        )
+        self.client.force_login(professor)
+
+        response = self.client.get(reverse('lista_notas'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Aluno Visivel')
+        self.assertNotContains(response, 'Aluno Oculto')
 
     def test_nota_form_rejects_discipline_outside_student_course(self):
         aluno = Aluno.objects.create(nome='Ana Silva', matricula='N109')

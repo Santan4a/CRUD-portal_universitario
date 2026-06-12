@@ -5,6 +5,16 @@ from users.utils import gerar_matricula_unica
 
 
 class Aluno(models.Model):
+    TURNO_MANHA = 'manha'
+    TURNO_TARDE = 'tarde'
+    TURNO_NOITE = 'noite'
+
+    TURNO_CHOICES = (
+        (TURNO_MANHA, 'Manhã'),
+        (TURNO_TARDE, 'Tarde'),
+        (TURNO_NOITE, 'Noite'),
+    )
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -16,6 +26,12 @@ class Aluno(models.Model):
     nome = models.CharField(max_length=100)
     matricula = models.CharField(max_length=20, unique=True, blank=True)
     curso = models.CharField(max_length=120, blank=True, default='')
+    turno = models.CharField(
+        max_length=10,
+        choices=TURNO_CHOICES,
+        blank=True,
+        default='',
+    )
     disciplinas = models.ManyToManyField(
         'disciplinas.Disciplina',
         blank=True,

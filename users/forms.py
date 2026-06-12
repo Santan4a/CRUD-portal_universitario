@@ -59,6 +59,11 @@ class GestaoUsuarioForm(forms.Form):
         label='Curso',
         required=False,
     )
+    turno = forms.ChoiceField(
+        choices=[],
+        label='Turno',
+        required=False,
+    )
     disciplina = forms.ChoiceField(
         choices=[],
         label='Disciplina que irá lecionar',
@@ -81,6 +86,7 @@ class GestaoUsuarioForm(forms.Form):
 
         self.fields['role'].initial = role
         self.fields['curso'].choices = curso_choices()
+        self.fields['turno'].choices = [('', 'Selecione um turno'), *Aluno.TURNO_CHOICES]
         self.fields['disciplina'].choices = self._disciplina_choices(curso)
         self.fields['password'].initial = self.initial_password
 
@@ -99,6 +105,7 @@ class GestaoUsuarioForm(forms.Form):
         cleaned_data = super().clean()
         role = cleaned_data.get('role')
         curso = cleaned_data.get('curso')
+        turno = cleaned_data.get('turno')
         disciplina = cleaned_data.get('disciplina')
         email = (cleaned_data.get('email') or '').strip()
         email_pessoal_professor = (
@@ -133,6 +140,11 @@ class GestaoUsuarioForm(forms.Form):
 
         if role in (Profile.ROLE_ALUNO, Profile.ROLE_PROFESSOR) and not curso:
             self.add_error('curso', 'Selecione o curso.')
+
+        if role == Profile.ROLE_ALUNO and not turno:
+            self.add_error('turno', 'Selecione o turno.')
+        elif role != Profile.ROLE_ALUNO:
+            cleaned_data['turno'] = ''
 
         if role == Profile.ROLE_PROFESSOR and curso:
             codigos_do_curso = {
@@ -176,6 +188,9 @@ class GestaoUsuarioForm(forms.Form):
             profile_data['matricula'] = username
             profile_data['curso'] = self.cleaned_data['curso']
 
+        if role == Profile.ROLE_ALUNO:
+            profile_data['turno'] = self.cleaned_data['turno']
+
         profile = Profile.objects.create(**profile_data)
 
         if role == Profile.ROLE_PROFESSOR:
@@ -195,6 +210,7 @@ class GestaoUsuarioForm(forms.Form):
                 nome=nome,
                 matricula=username,
                 curso=self.cleaned_data['curso'],
+                turno=self.cleaned_data['turno'],
             )
             vincular_disciplinas_do_curso(aluno)
 

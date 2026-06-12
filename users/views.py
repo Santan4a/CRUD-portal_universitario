@@ -92,6 +92,7 @@ def dashboard_gestao(request):
             Q(nome__icontains=query)
             | Q(matricula__icontains=query)
             | Q(curso__icontains=query)
+            | Q(turno__icontains=query)
             | Q(user__username__icontains=query)
             | Q(user__email__icontains=query)
             | Q(disciplinas__nome__icontains=query)
@@ -238,6 +239,7 @@ def editar_aluno_gestao(request, id):
             'form_title': 'Editar aluno',
             'submit_label': 'Salvar alterações',
             'disciplinas_por_curso': disciplinas_por_curso_json(),
+            'tipo_usuario_form': Profile.ROLE_ALUNO,
         }
     )
 

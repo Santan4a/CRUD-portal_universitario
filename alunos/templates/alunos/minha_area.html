@@ -12,7 +12,7 @@
         <div>
             <p class="eyebrow">Portal Tech</p>
             <h2>{{ aluno.nome }}</h2>
-            <span>{{ aluno.curso|default:"Curso não informado" }} · {{ aluno.matricula }}</span>
+            <span>{{ aluno.curso|default:"Curso não informado" }} · {{ aluno.get_turno_display|default:"Turno não informado" }} · {{ aluno.matricula }}</span>
         </div>
         <strong>{{ media_geral|floatformat:1 }}</strong>
     </section>
@@ -21,6 +21,10 @@
         <article class="metric">
             <span>Curso</span>
             <strong>{{ aluno.curso|default:"Não informado" }}</strong>
+        </article>
+        <article class="metric">
+            <span>Turno</span>
+            <strong>{{ aluno.get_turno_display|default:"Não informado" }}</strong>
         </article>
         <article class="metric">
             <span>Média geral</span>
@@ -46,6 +50,10 @@
             <div>
                 <span>Curso</span>
                 <strong>{{ aluno.curso|default:"Não informado" }}</strong>
+            </div>
+            <div>
+                <span>Turno</span>
+                <strong>{{ aluno.get_turno_display|default:"Não informado" }}</strong>
             </div>
             <div>
                 <span>Disciplinas cursando</span>
@@ -198,6 +206,7 @@
                         <thead>
                             <tr>
                                 <th>Disciplina</th>
+                                <th>Turno</th>
                                 <th>Início</th>
                                 <th>Fim</th>
                                 <th>Sala</th>
@@ -211,13 +220,14 @@
                                     <span class="cell-title">{{ aula.disciplina.nome }}</span>
                                     <span class="cell-subtitle">{{ aula.disciplina.codigo }}</span>
                                 </td>
-                                <td>{{ aula.horario_inicio }}</td>
-                                <td>{{ aula.horario_fim }}</td>
+                                <td>{{ aula.get_turno_display }}</td>
+                                <td>{{ aula.horario_inicio|time:"H:i" }}</td>
+                                <td>{{ aula.horario_fim|time:"H:i" }}</td>
                                 <td>{{ aula.sala }}</td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4">
+                                <td colspan="5">
                                     <div class="empty-state">
                                         <strong>Nenhuma aula</strong>
                                     </div>

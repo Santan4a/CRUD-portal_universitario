@@ -21,6 +21,24 @@
         </article>
     </section>
 
+    {% if alertas_faltas %}
+    <section class="data-panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <h2>Alertas de frequência</h2>
+                <span>{{ alertas_faltas|length }} alerta(s)</span>
+            </div>
+        </div>
+        <div class="tag-list">
+            {% for alerta in alertas_faltas %}
+                <span class="tag {% if alerta.critico %}status-warn{% endif %}">
+                    {{ alerta.aluno }} · {{ alerta.disciplina }}: {{ alerta.faltas }}/{{ alerta.limite }} faltas
+                </span>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     <section class="data-panel">
         <div class="panel-header">
             <div class="panel-title">
@@ -28,7 +46,11 @@
                 <span>{{ faltas|length }} falta(s)</span>
             </div>
             {% if can_manage %}
-            <a class="button button-primary" href="{% url 'criar_falta' %}">Nova Falta</a>
+            <div class="row-actions">
+                <a class="button button-primary" href="{% url 'criar_falta' %}">Nova Falta</a>
+                <a class="button" href="{% url 'registrar_chamada' %}">Registrar chamada</a>
+                <a class="button" href="{% url 'limites_faltas' %}">Limites</a>
+            </div>
             {% endif %}
         </div>
 
