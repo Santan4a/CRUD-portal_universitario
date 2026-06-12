@@ -52,6 +52,31 @@ class FaltaAccessTests(TestCase):
         self.assertContains(response, 'Ana Silva')
         self.assertNotContains(response, 'Bruno Lima')
 
+    def test_gestao_nao_ve_nem_acessa_registrar_chamada(self):
+        gestao = User.objects.create_user(username='gestao_faltas_teste', password='gestao12345')
+        Profile.objects.create(user=gestao, role='gestao')
+        self.client.force_login(gestao)
+
+        lista_response = self.client.get(reverse('lista_faltas'))
+        chamada_response = self.client.get(reverse('registrar_chamada'))
+
+        self.assertEqual(lista_response.status_code, 200)
+        self.assertContains(lista_response, 'Nova Falta')
+        self.assertContains(lista_response, 'Limites')
+        self.assertNotContains(lista_response, 'Registrar chamada')
+        self.assertEqual(chamada_response.status_code, 403)
+
+    def test_professor_ve_registrar_chamada(self):
+        professor = User.objects.create_user(username='professor_botao_chamada', password='professor12345')
+        profile = Profile.objects.create(user=professor, role='professor')
+        profile.disciplinas.add(self.disciplina)
+        self.client.force_login(professor)
+
+        response = self.client.get(reverse('lista_faltas'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Registrar chamada')
+
     def test_professor_registra_chamada_e_gera_faltas(self):
         professor = User.objects.create_user(
             username='professor_chamada',

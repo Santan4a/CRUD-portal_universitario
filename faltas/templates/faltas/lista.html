@@ -48,7 +48,9 @@
             {% if can_manage %}
             <div class="row-actions">
                 <a class="button button-primary" href="{% url 'criar_falta' %}">Nova Falta</a>
+                {% if can_registrar_chamada %}
                 <a class="button" href="{% url 'registrar_chamada' %}">Registrar chamada</a>
+                {% endif %}
                 <a class="button" href="{% url 'limites_faltas' %}">Limites</a>
             </div>
             {% endif %}

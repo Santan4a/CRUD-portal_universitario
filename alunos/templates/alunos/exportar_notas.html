@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block page_title %}Exportar Notas | Portal Universitario{% endblock %}
+{% block eyebrow %}Area do aluno{% endblock %}
+{% block title %}Exportar Notas{% endblock %}
+
+{% block header_actions %}
+<a class="button" href="{% url 'minha_area' %}">Voltar</a>
+{% endblock %}
+
+{% block content %}
+<div class="content-stack">
+    <section class="data-panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <h2>Exportacao de Notas</h2>
+                <span>{{ aluno.matricula }}</span>
+            </div>
+        </div>
+
+        <form method="GET">
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="disciplina">Disciplina</label>
+                    <select id="disciplina" name="disciplina">
+                        <option value="">Selecione uma disciplina</option>
+                        {% for disciplina in disciplinas %}
+                            <option value="{{ disciplina.id }}" {% if disciplina.id|stringformat:"s" == disciplina_id %}selected{% endif %}>
+                                {{ disciplina.nome }} ({{ disciplina.codigo }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Buscar Notas</button>
+            </div>
+        </form>
+    </section>
+
+    {% if busca_realizada %}
+    <section class="data-panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <h2>Resultados</h2>
+                <span>{{ notas|length }} registro(s)</span>
+            </div>
+
+            {% if notas %}
+            <div class="row-actions">
+                <a class="button button-danger" href="{% url 'exportar_notas_aluno_pdf' %}?disciplina={{ disciplina_id }}">
+                    Exportar PDF
+                </a>
+                <a class="button button-success" href="{% url 'exportar_notas_aluno_excel' %}?disciplina={{ disciplina_id }}">
+                    Exportar Excel
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Disciplina</th>
+                        <th>Nota 1</th>
+                        <th>Nota 2</th>
+                        <th>Media</th>
+                        <th>Situacao</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for nota in notas %}
+                    <tr>
+                        <td>
+                            <span class="cell-title">{{ nota.disciplina.nome }}</span>
+                            <span class="cell-subtitle">{{ nota.disciplina.codigo }}</span>
+                        </td>
+                        <td>{{ nota.nota1|floatformat:1 }}</td>
+                        <td>{{ nota.nota2|floatformat:1 }}</td>
+                        <td>{{ nota.media|floatformat:1 }}</td>
+                        <td>
+                            {% if nota.media >= 7 %}
+                                <span class="status status-ok">Aprovado</span>
+                            {% else %}
+                                <span class="status status-warn">Revisar</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <strong>Nenhuma nota encontrada</strong>
+                                <span>Selecione uma disciplina com notas lancadas.</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

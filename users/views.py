@@ -1,10 +1,10 @@
 import logging
+from smtplib import SMTPAuthenticationError
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -179,6 +179,21 @@ def cadastrar_aluno_gestao(request):
                     request,
                     destinatario=destinatario,
                 )
+            except ImproperlyConfigured as exc:
+                logger.warning(
+                    'SMTP nao configurado para enviar credenciais do usuario %s.',
+                    user.username,
+                )
+                messages.warning(request, str(exc))
+            except SMTPAuthenticationError:
+                logger.exception(
+                    'Gmail recusou as credenciais SMTP ao enviar acesso do usuario %s.',
+                    user.username,
+                )
+                messages.warning(
+                    request,
+                    'Usuário cadastrado, mas o Gmail recusou o login SMTP. Use uma senha de app no arquivo .env.',
+                )
             except Exception:
                 logger.exception(
                     'Falha ao enviar credenciais do usuário %s por e-mail.',
@@ -189,16 +204,10 @@ def cadastrar_aluno_gestao(request):
                     'Usuário cadastrado, mas não foi possível enviar o e-mail de acesso.',
                 )
             else:
-                if settings.EMAIL_BACKEND.endswith('console.EmailBackend'):
-                    messages.warning(
-                        request,
-                        'Usuário cadastrado com sucesso. As credenciais foram exibidas no terminal do servidor.',
-                    )
-                else:
-                    messages.success(
-                        request,
-                        'Usuário cadastrado com sucesso. Credenciais enviadas para o e-mail do usuário.',
-                    )
+                messages.success(
+                    request,
+                    'Usuário cadastrado com sucesso. Credenciais enviadas para o e-mail do usuário.',
+                )
         else:
             messages.success(request, 'Usuário cadastrado com sucesso.')
 

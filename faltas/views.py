@@ -128,6 +128,7 @@ def alertas_limite_faltas(faltas):
 def lista_faltas(request):
     faltas = faltas_permitidas_para_usuario(request.user)
     can_manage = can_manage_screen(request.user, Profile.SCREEN_FALTAS)
+    can_registrar_chamada = is_professor(request.user) and can_manage
 
     return render(
         request,
@@ -135,6 +136,7 @@ def lista_faltas(request):
         {
             'faltas': faltas,
             'can_manage': can_manage,
+            'can_registrar_chamada': can_registrar_chamada,
             'alertas_faltas': alertas_limite_faltas(faltas),
         }
     )
@@ -174,8 +176,11 @@ def excluir_falta(request, id):
     return render(request, 'faltas/confirmar_exclusao.html', {'falta': falta})
 
 
-@manage_screen_required(Profile.SCREEN_FALTAS)
+@login_required
 def registrar_chamada(request):
+    if not is_professor(request.user) or not can_manage_screen(request.user, Profile.SCREEN_FALTAS):
+        raise PermissionDenied
+
     form_data = request.POST if request.method == 'POST' else (request.GET or None)
     form = ChamadaForm(form_data, user=request.user)
     alunos = Aluno.objects.none()
